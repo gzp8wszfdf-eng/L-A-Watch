@@ -662,6 +662,19 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
   }catch(e){status.textContent='Не удалось загрузить: '+e.message}finally{btn.disabled=false}
  }
 let activeCatalogProvider='youtube';
+let vkReturnPending=false;
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState!=='visible'||!vkReturnPending)return;
+ vkReturnPending=false;
+ $('youtubeCatalog').classList.add('hidden');
+ $('videoScreen').classList.remove('hidden');
+ const row=document.querySelector('.room-video-link-row'),field=$('videoUrl');
+ if(row){row.style.transition='box-shadow .25s,transform .25s';row.style.boxShadow='0 0 0 3px #2787f5,0 0 22px #2787f577';row.style.borderRadius='12px';row.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{row.style.boxShadow='';},2600)}
+ if(field){field.placeholder='Вставь сюда скопированную ссылку из VK Видео';field.focus({preventScroll:true})}
+ $('globalMsg').textContent='Вставь скопированную ссылку VK Видео в поле и нажми «Открыть».';
+ $('globalMsg').classList.add('show');
+ setTimeout(()=>$('globalMsg').classList.remove('show'),4500);
+});
 function setCatalogProvider(provider){
  activeCatalogProvider=provider;
  $('videoProviderTitle').textContent=provider==='youtube'?'YouTube':provider==='rutube'?'RUTUBE':'VK Видео';
@@ -694,8 +707,9 @@ async function searchActiveVideoProvider(){
  if(!q){status.textContent='Напиши, что хочешь найти.';return}
  if(activeCatalogProvider==='vk'){
   const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
-  window.open(searchUrl,'_blank','noopener');
-  status.textContent='VK Видео открыто в новой вкладке. Инструкция по добавлению ролика остаётся здесь — выполни шаги выше.';
+  vkReturnPending=true;
+  window.open(searchUrl,'_blank');
+  status.textContent='Когда вернёшься из VK Видео, поле для ссылки автоматически подсветится.';
   return;
  }
  btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
