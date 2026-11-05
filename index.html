@@ -662,19 +662,28 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
   }catch(e){status.textContent='Не удалось загрузить: '+e.message}finally{btn.disabled=false}
  }
 let activeCatalogProvider='youtube';
-let vkReturnPending=false;
-document.addEventListener('visibilitychange',()=>{
- if(document.visibilityState!=='visible'||!vkReturnPending)return;
- vkReturnPending=false;
+function restoreVkPasteField(){
+ if(sessionStorage.getItem('la_vk_return')!=='1')return;
+ sessionStorage.removeItem('la_vk_return');
  $('youtubeCatalog').classList.add('hidden');
  $('videoScreen').classList.remove('hidden');
  const row=document.querySelector('.room-video-link-row'),field=$('videoUrl');
- if(row){row.style.transition='box-shadow .25s,transform .25s';row.style.boxShadow='0 0 0 3px #2787f5,0 0 22px #2787f577';row.style.borderRadius='12px';row.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{row.style.boxShadow='';},2600)}
- if(field){field.placeholder='Вставь сюда скопированную ссылку из VK Видео';field.focus({preventScroll:true})}
- $('globalMsg').textContent='Вставь скопированную ссылку VK Видео в поле и нажми «Открыть».';
+ if(row){
+  row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.style.boxShadow='0 0 0 3px #2787f5,0 0 22px #2787f577';
+  row.style.borderRadius='12px';
+  setTimeout(()=>{row.style.boxShadow='';},3000);
+ }
+ if(field){
+  field.placeholder='Вставь сюда ссылку, скопированную в VK Видео';
+  setTimeout(()=>field.focus({preventScroll:true}),350);
+ }
+ $('globalMsg').textContent='Вставь ссылку из VK Видео в выделенное поле и нажми «Открыть».';
  $('globalMsg').classList.add('show');
  setTimeout(()=>$('globalMsg').classList.remove('show'),4500);
-});
+}
+window.addEventListener('pageshow',restoreVkPasteField);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')restoreVkPasteField()});
 function setCatalogProvider(provider){
  activeCatalogProvider=provider;
  $('videoProviderTitle').textContent=provider==='youtube'?'YouTube':provider==='rutube'?'RUTUBE':'VK Видео';
@@ -695,7 +704,7 @@ function setCatalogProvider(provider){
  }else{
   $('youtubeSearchInput').placeholder='Что найти в VK Видео?';
   $('youtubeSearchStatus').textContent='Введи название ролика и нажми поиск. Затем скопируй ссылку на ролик в VK и вставь её в поле ссылки в комнате.';
-  $('videoProviderNote').textContent='<b>Как добавить видео из VK:</b><br>1. Введи название ролика и нажми поиск — VK Видео откроется в новой вкладке.<br>2. Открой нужный ролик в VK Видео. Нажми «Поделиться» → «Копировать ссылку».<br>3. Вернись в L&amp;A Watch, закрой это окно поиска и вставь ссылку в поле «Вставь ссылку на видео с любого сайта» под значками в комнате.<br>4. Нажми «Открыть» — видео появится в комнате у всех участников.<br><small>Важно: видео должно быть доступно для просмотра и разрешать встраивание. Некоторые ролики VK могут не открываться внутри сторонних сайтов.</small>';
+  $('videoProviderNote').innerHTML='<strong>Как добавить видео из VK</strong><ol style="padding-left:22px;margin:8px 0"><li>Нажми «Найти» — откроется VK Видео.</li><li>Выбери ролик и нажми «Поделиться» → «Копировать ссылку».</li><li>Вернись сюда кнопкой «Назад» в браузере или переключись обратно на L&amp;A Watch.</li><li>Ссылка вставляется в подсвеченное поле. Нажми «Открыть».</li></ol><small>Если ролик запрещает встраивание, он может не запуститься.</small>';
  }
 }
 $('providerYoutubeTab').onclick=()=>setCatalogProvider('youtube');
@@ -707,9 +716,9 @@ async function searchActiveVideoProvider(){
  if(!q){status.textContent='Напиши, что хочешь найти.';return}
  if(activeCatalogProvider==='vk'){
   const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
-  vkReturnPending=true;
-  window.open(searchUrl,'_blank');
-  status.textContent='Когда вернёшься из VK Видео, поле для ссылки автоматически подсветится.';
+  sessionStorage.setItem('la_vk_return','1');
+  status.textContent='Открываем VK Видео. После копирования ссылки вернись сюда кнопкой «Назад».';
+  window.location.assign(searchUrl);
   return;
  }
  btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
