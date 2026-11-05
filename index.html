@@ -129,7 +129,59 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
  .youtube-picker-results .result>img{max-width:145px!important}
 }
 
-</style></head>
+</style><style id="video-card-layout-fix">
+/* Final mobile layout for video search results */
+#youtubeSearchResults.youtube-picker-results{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-auto-rows:max-content!important;
+ align-content:start!important;
+ gap:10px!important;
+}
+#youtubeSearchResults .result{
+ display:grid!important;
+ grid-template-columns:minmax(0,118px) minmax(0,1fr)!important;
+ grid-template-rows:auto auto!important;
+ grid-auto-flow:row!important;
+ align-content:start!important;
+ align-items:center!important;
+ gap:7px 10px!important;
+ width:100%!important;
+ min-height:0!important;
+ height:auto!important;
+ margin:0!important;
+ padding:8px!important;
+ overflow:visible!important;
+ box-sizing:border-box!important;
+}
+#youtubeSearchResults .result>img{
+ grid-column:1!important;grid-row:1!important;
+ display:block!important;width:100%!important;max-width:none!important;
+ height:auto!important;aspect-ratio:16/9!important;object-fit:cover!important;
+ align-self:center!important;
+}
+#youtubeSearchResults .result>span{
+ grid-column:2!important;grid-row:1!important;
+ display:block!important;min-width:0!important;overflow:hidden!important;
+}
+#youtubeSearchResults .result>div:last-child{
+ grid-column:1/-1!important;grid-row:2!important;
+ display:flex!important;position:static!important;
+ width:100%!important;min-width:0!important;
+ gap:8px!important;margin:0!important;padding:0!important;
+}
+#youtubeSearchResults .result>div:last-child button{
+ display:block!important;flex:1 1 0!important;min-width:0!important;
+ width:0!important;height:38px!important;min-height:38px!important;
+ margin:0!important;padding:7px 5px!important;
+ font-size:12px!important;line-height:1.2!important;
+ white-space:nowrap!important;
+}
+@media(max-width:520px){
+ #youtubeSearchResults .result{grid-template-columns:minmax(0,38%) minmax(0,1fr)!important;gap:7px 9px!important}
+}
+</style>
+</head>
 <body><div class="wrap">
 <header class="top"><button class="secondary menu-btn hidden" id="settingsBtn" aria-label="Открыть меню" title="Меню"><span></span><span></span><span></span></button><div class="brand"><div class="logo">L&A</div>Watch</div><div class="status" id="status">● подключение</div></header>
 <main>
