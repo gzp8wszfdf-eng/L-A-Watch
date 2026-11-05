@@ -117,20 +117,38 @@ $('sendDm').onclick=async()=>{const content=$('dmText').value.trim();if(!content
 
 let activeRoomId=null,activeRoomCode=null,roomChannel=null,roomVideo=null,isApplyingRemote=false,lastSyncWrite=0;
 let youtubePlayer=null,youtubeReady=false,youtubeSuppress=false,youtubeSyncTimer=null;
+let ytLastTime=0,ytLastTick=0,ytLastHeartbeat=0,ytLastPlaying=false;
 window.onYouTubeIframeAPIReady=()=>{youtubeReady=true};
+function writeYoutubeState(playing,pos){
+ if(!activeRoomId||youtubeSuppress)return;
+ db.from('playback_state').upsert({room_id:activeRoomId,video_url:$('videoUrl').value.trim(),video_position:Math.max(0,Number(pos)||0),is_playing:!!playing,updated_at:new Date().toISOString()})
+ .then(({error})=>{if(error)roomSay('Ошибка синхронизации YouTube: '+error.message)});
+ ytLastTime=Number(pos)||0;ytLastTick=Date.now();ytLastHeartbeat=ytLastTick;ytLastPlaying=!!playing;
+}
 function stopYoutubeSync(){if(youtubeSyncTimer){clearInterval(youtubeSyncTimer);youtubeSyncTimer=null}}
+function startYoutubeSync(){
+ stopYoutubeSync();
+ if(!youtubePlayer)return;
+ ytLastTime=youtubePlayer.getCurrentTime()||0;ytLastTick=Date.now();
+ ytLastPlaying=youtubePlayer.getPlayerState()===YT.PlayerState.PLAYING;ytLastHeartbeat=ytLastTick;
+ youtubeSyncTimer=setInterval(()=>{
+  if(!youtubePlayer||!activeRoomId)return;
+  const now=Date.now(),pos=youtubePlayer.getCurrentTime()||0;
+  const playing=youtubePlayer.getPlayerState()===YT.PlayerState.PLAYING;
+  if(youtubeSuppress){ytLastTime=pos;ytLastTick=now;ytLastPlaying=playing;return}
+  const elapsed=(now-ytLastTick)/1000;
+  const expected=ytLastTime+(ytLastPlaying?elapsed:0);
+  const jumped=Math.abs(pos-expected)>1.25;
+  const heartbeat=playing&&now-ytLastHeartbeat>=2000;
+  if(jumped||heartbeat)writeYoutubeState(playing,pos);
+  else{ytLastTime=pos;ytLastTick=now;ytLastPlaying=playing}
+ },300);
+}
 function youtubeStateChanged(event){
  if(youtubeSuppress||!activeRoomId)return;
  const state=event.data;
  if(state===YT.PlayerState.PLAYING||state===YT.PlayerState.PAUSED){
-  const playing=state===YT.PlayerState.PLAYING;
-  const pos=youtubePlayer?.getCurrentTime?.()||0;
-  db.from('playback_state').upsert({room_id:activeRoomId,video_url:$('videoUrl').value.trim(),video_position:pos,is_playing:playing,updated_at:new Date().toISOString()}).then(({error})=>{if(error)roomSay('Ошибка синхронизации YouTube: '+error.message)});
-  if(playing&&!youtubeSyncTimer)youtubeSyncTimer=setInterval(()=>{
-   if(!youtubePlayer||youtubeSuppress||!activeRoomId)return;
-   db.from('playback_state').upsert({room_id:activeRoomId,video_url:$('videoUrl').value.trim(),video_position:youtubePlayer.getCurrentTime()||0,is_playing:true,updated_at:new Date().toISOString()});
-  },3000);
-  if(!playing)stopYoutubeSync();
+  writeYoutubeState(state===YT.PlayerState.PLAYING,youtubePlayer?.getCurrentTime?.()||0);
  }
 }
 function roomSay(m){$('roomNotice').textContent=m}
@@ -168,7 +186,7 @@ function renderRoomVideo(url,pos=0,playing=false){
   const createPlayer=()=>{
    if(!youtubeReady||!document.getElementById('youtube-player-frame'))return;
    youtubePlayer=new YT.Player('youtube-player-frame',{videoId:ytId,playerVars:{playsinline:1,origin:location.origin},events:{
-    onReady:()=>{if(pos>0)youtubePlayer.seekTo(pos,true);if(playing)youtubePlayer.playVideo()},
+    onReady:()=>{if(pos>0)youtubePlayer.seekTo(pos,true);if(playing)youtubePlayer.playVideo();startYoutubeSync()},
     onStateChange:youtubeStateChanged,
     onError:()=>roomSay('YouTube не разрешил встроенное воспроизведение этого ролика.')
    }});
@@ -194,7 +212,7 @@ async function applyRemotePlayback(s){
    const state=youtubePlayer.getPlayerState();
    if(s.is_playing&&state!==YT.PlayerState.PLAYING)youtubePlayer.playVideo();
    if(!s.is_playing&&state===YT.PlayerState.PLAYING)youtubePlayer.pauseVideo();
-  }finally{setTimeout(()=>{youtubeSuppress=false},700)}
+  }finally{setTimeout(()=>{youtubeSuppress=false;ytLastTime=youtubePlayer?.getCurrentTime?.()||0;ytLastTick=Date.now();ytLastPlaying=youtubePlayer?.getPlayerState?.()===YT.PlayerState.PLAYING},700)}
   return;
  }
  if(!roomVideo)return;
