@@ -44,7 +44,8 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div id="roomInvitePopup" class="hidden" style="position:fixed;z-index:9999;left:16px;right:16px;top:18px;max-width:520px;margin:auto;padding:18px;border-radius:16px;background:var(--panel,#171923);border:1px solid var(--accent,#8b5cf6);box-shadow:0 12px 40px #0008"><strong id="roomInviteText">Приглашение в комнату</strong><div class="row" style="margin-top:12px"><button class="primary" id="acceptRoomInvite">Принять</button><button class="secondary" id="declineRoomInvite">Отклонить</button></div></div>
 <div id="roomWorkspace" class="hidden"><div class="row" style="justify-content:space-between"><strong>Код комнаты: <span id="roomCode" class="grad"></span></strong><button class="smallbtn" id="copyRoomCode">Копировать код</button></div><div class="panel" style="margin-top:12px"><h4>👥 Позвать друзей</h4><div id="roomFriendInviteList" class="list muted">Загружаем друзей…</div></div>
 <p class="muted">Для синхронного воспроизведения используй прямую ссылку MP4/WebM. Сторонние сайты откроются во встроенном окне, но их плеер может не поддерживать синхронизацию.</p>
-<div class="row"><input id="videoUrl" class="field" placeholder="https://.../video.mp4"><button class="smallbtn" id="loadVideoBtn">Открыть видео</button></div>
+<div class="row"><input id="videoUrl" class="field" placeholder="https://.../video.mp4"><button class="smallbtn" id="loadVideoBtn">Открыть видео</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button></div>
+<div class="panel" id="videoQueuePanel" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center"><div><strong>📺 Очередь видео</strong><div class="muted" style="font-size:12px">Добавляй ролики — они будут доступны всем в комнате</div></div><button class="primary" id="playNextQueueBtn" disabled>▶ Следующее</button></div><div id="videoQueueList" class="list muted" style="margin-top:10px">Очередь пока пуста.</div></div>
 <div class="voice-panel"><div class="row" style="justify-content:space-between"><strong>🎙️ Голосовая комната</strong><span class="muted" id="voiceCount">0 участников</span></div><p class="muted">Нажми «Подключиться к голосу», чтобы включить микрофон. Без твоего нажатия микрофон не включается. При выходе из комнаты голос отключится.</p><div class="voice-actions"><button class="primary" id="voiceJoinBtn">🎙️ Подключиться к голосу</button><button class="secondary" id="voiceMuteBtn" disabled>Выключить микрофон</button><button class="secondary" id="voiceOutputBtn" disabled>Выключить звук</button><button class="secondary" id="voiceLeaveBtn" disabled>Выйти из голоса</button></div><div class="voice-state" id="voiceStatus">Голосовой чат пока не подключён.</div><div class="voice-users" id="voiceUsers"></div></div>
 <div class="screen" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
 <div class="dash" style="margin-top:14px"><div><h4>💬 Общий чат</h4><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></div>
@@ -311,9 +312,10 @@ async function openRoom(id,code){
  .on('presence',{event:'join'},({newPresences})=>{renderVoiceUsers();if(voiceActive)(newPresences||[]).forEach(p=>{if(p.voiceActive)voiceOffer(p.userId).catch(e=>console.error(e))})})
  .on('presence',{event:'leave'},({leftPresences})=>{(leftPresences||[]).forEach(p=>voiceDropPeer(p.userId));renderVoiceUsers()})
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room_id=eq.'+id},p=>{if(p.new)appendRoomMessage(p.new)})
+ .on('postgres_changes',{event:'*',schema:'public',table:'room_video_queue',filter:'room_id=eq.'+id},()=>refreshRoomVideoQueue())
 .on('postgres_changes',{event:'*',schema:'public',table:'playback_state',filter:'room_id=eq.'+id},p=>{const x=p.new;if(!x?.video_url||x.client_id===playbackClientId)return;if($('videoUrl').value!==x.video_url){$('videoUrl').value=x.video_url;renderRoomVideo(x.video_url,x.video_position||0,x.is_playing)}else applyRemotePlayback(x)})
  .on('broadcast',{event:'playback'},({payload})=>{const x=payload;if(!x?.video_url||x.client_id===playbackClientId)return;if($('videoUrl').value!==x.video_url){$('videoUrl').value=x.video_url;renderRoomVideo(x.video_url,x.video_position||0,x.is_playing)}else applyRemotePlayback(x)})
- .subscribe(status=>{if(status==='SUBSCRIBED')roomSay('Комната подключена. Синхронизация активна.');else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')roomSay('Проблема соединения синхронизации: '+status)});
+ .subscribe(status=>{if(status==='SUBSCRIBED'){roomSay('Комната подключена. Синхронизация активна.');refreshRoomVideoQueue()}else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')roomSay('Проблема соединения синхронизации: '+status)});
 }
 async function refreshPublicRooms(){
  const box=$('publicRooms');if(!box)return;const {data,error}=await db.rpc('list_public_watch_rooms');box.innerHTML='';
@@ -410,6 +412,60 @@ $('createRoomBtn').onclick=async()=>{roomSay('Создаём комнату…')
 $('joinRoomBtn').onclick=async()=>{const code=$('joinCode').value.trim().toUpperCase();if(!code)return roomSay('Введи код комнаты.');roomSay('Подключаемся…');const {data,error}=await db.rpc('join_watch_room',{p_code:code});if(error)return roomSay('Не удалось войти: '+error.message);await openRoom(data,code)};
 $('copyRoomCode').onclick=async()=>{try{await navigator.clipboard.writeText(activeRoomCode);roomSay('Код скопирован!')}catch(e){roomSay('Код комнаты: '+activeRoomCode)}};
 $('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
+
+let queueBusy=false;
+async function refreshRoomVideoQueue(){
+ if(!activeRoomId)return;
+ const roomId=activeRoomId;
+ const {data,error}=await db.from('room_video_queue').select('id,video_url,created_at').eq('room_id',roomId).order('created_at',{ascending:true}).order('id',{ascending:true}).limit(50);
+ if(roomId!==activeRoomId)return;
+ const box=$('videoQueueList'),next=$('playNextQueueBtn');
+ if(error){box.textContent='Не удалось загрузить очередь: '+error.message;next.disabled=true;return}
+ box.innerHTML='';
+ if(!data?.length){box.textContent='Очередь пока пуста. Добавь ссылку на видео выше.';next.disabled=true;return}
+ data.forEach((item,index)=>{
+  const row=document.createElement('div');row.className='result';
+  const info=document.createElement('span');info.style.cssText='min-width:0;overflow-wrap:anywhere;flex:1';
+  let host='Видео';try{host=new URL(item.video_url).hostname.replace(/^www\./,'')}catch(e){}
+  info.textContent=(index+1)+'. '+host+' — '+item.video_url;
+  const remove=document.createElement('button');remove.className='smallbtn';remove.textContent='Убрать';remove.disabled=queueBusy;
+  remove.onclick=async()=>{const {error:e}=await db.from('room_video_queue').delete().eq('id',item.id).eq('room_id',roomId);if(e)roomSay('Не удалось убрать видео: '+e.message);else await refreshRoomVideoQueue()};
+  row.append(info,remove);box.append(row);
+ });
+ next.disabled=queueBusy||!data.length;
+}
+async function addVideoToQueue(){
+ const url=$('videoUrl').value.trim();
+ if(!activeRoomId)return roomSay('Сначала войди в комнату.');
+ if(!/^https?:\/\//i.test(url))return roomSay('Вставь корректную ссылку http:// или https://');
+ const {error}=await db.from('room_video_queue').insert({room_id:activeRoomId,video_url:url,added_by:currentUser.id});
+ if(error)return roomSay('Не удалось добавить в очередь: '+error.message);
+ roomSay('Видео добавлено в общую очередь.');
+ await refreshRoomVideoQueue();
+}
+async function playNextQueuedVideo(){
+ if(queueBusy||!activeRoomId)return;
+ queueBusy=true;$('playNextQueueBtn').disabled=true;
+ const roomId=activeRoomId;
+ try{
+  const {data:item,error}=await db.from('room_video_queue').select('id,video_url').eq('room_id',roomId).order('created_at',{ascending:true}).order('id',{ascending:true}).limit(1).maybeSingle();
+  if(error)throw error;
+  if(!item){roomSay('Очередь пуста.');return}
+  const {data:claimed,error:claimError}=await db.from('room_video_queue').delete().eq('id',item.id).eq('room_id',roomId).select('id');
+  if(claimError)throw claimError;
+  if(!claimed?.length){roomSay('Это видео уже запускает другой участник.');return}
+  $('videoUrl').value=item.video_url;renderRoomVideo(item.video_url,0,false);
+  const state={room_id:roomId,client_id:playbackClientId,video_url:item.video_url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};
+  broadcastPlayback(state);
+  const {error:saveError}=await db.from('playback_state').upsert(state);
+  if(saveError){await db.from('room_video_queue').insert({room_id:roomId,video_url:item.video_url,added_by:currentUser.id});throw saveError}
+  roomSay('Следующее видео загружено для всех участников комнаты.');
+ }catch(e){roomSay('Не удалось запустить видео: '+e.message)}
+ finally{queueBusy=false;await refreshRoomVideoQueue()}
+}
+
+$('addVideoQueueBtn').onclick=addVideoToQueue;
+$('playNextQueueBtn').onclick=playNextQueuedVideo;
 $('sendRoomMessage').onclick=async()=>{const content=$('roomChatText').value.trim();if(!content||!activeRoomId)return;const {data:p}=await db.from('profiles').select('username').eq('id',currentUser.id).maybeSingle();const {error}=await db.from('messages').insert({room_id:activeRoomId,username:p?.username||'user',content});if(error)roomSay('Ошибка отправки: '+error.message);else $('roomChatText').value=''};
 $('roomChatText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendRoomMessage').click()});
 $('leaveRoomBtn').onclick=async()=>{await leaveVoice();if(roomChannel)await db.removeChannel(roomChannel);roomChannel=null;activeRoomId=null;activeRoomCode=null;roomVideo=null;try{localStorage.removeItem('lawatch:lastRoom')}catch(e){};$('roomWorkspace').classList.add('hidden');$('roomChat').innerHTML='';roomSay('Ты покинул комнату.')};
