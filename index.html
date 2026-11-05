@@ -678,8 +678,15 @@ function getExternalVideoEmbedUrl(raw){
    if(u.searchParams.has('t'))params.set('t',u.searchParams.get('t'));
    return 'https://rutube.ru/play/embed/'+match[1]+'/'+(params.toString()?'?'+params.toString():'');
   }
-  // VK may display anti-bot challenges inside embedded players. Open VK links externally instead.
-  if(['vk.com','vkvideo.ru','m.vk.com','m.vkvideo.ru'].includes(host))return null;
+  if(['vk.com','vkvideo.ru','m.vk.com','m.vkvideo.ru'].includes(host)){
+   if(u.pathname.toLowerCase().endsWith('/video_ext.php'))return u.href;
+   const match=u.pathname.match(/video(-?\\d+)_(\\d+)/i);
+   if(!match)return null;
+   const params=new URLSearchParams({oid:match[1],id:match[2]});
+   if(u.searchParams.has('hash'))params.set('hash',u.searchParams.get('hash'));
+   if(u.searchParams.has('hd'))params.set('hd',u.searchParams.get('hd'));
+   return 'https://vkvideo.ru/video_ext.php?'+params.toString();
+  }
  }catch(e){}
  return null;
 }
