@@ -54,7 +54,7 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 </div>
 <div style="margin-top:22px"><h4>🌍 Открытые комнаты</h4><div id="publicRooms" class="list muted">Загружаем комнаты…</div></div>
 </div>
-<div id="roomNotice" class="notice">Комната ещё не открыта.</div>
+<div id="roomNotice" class="notice hidden">Комната ещё не открыта.</div>
 <div id="roomInvitePopup" class="hidden" style="position:fixed;z-index:9999;left:16px;right:16px;top:18px;max-width:520px;margin:auto;padding:18px;border-radius:16px;background:var(--panel,#171923);border:1px solid var(--accent,#8b5cf6);box-shadow:0 12px 40px #0008"><strong id="roomInviteText">Приглашение в комнату</strong><div class="row" style="margin-top:12px"><button class="primary" id="acceptRoomInvite">Принять</button><button class="secondary" id="declineRoomInvite">Отклонить</button></div></div>
 <div id="roomWorkspace" class="hidden"><div class="row" style="justify-content:space-between"><button class="secondary" id="backToRoomsBtn">← К комнатам</button><strong>Код комнаты: <span id="roomCode" class="grad"></span></strong><button class="smallbtn" id="copyRoomCode">Копировать код</button></div><div class="panel" style="margin-top:12px"><h4>👥 Позвать друзей</h4><div id="roomFriendInviteList" class="list muted">Загружаем друзей…</div></div>
 <p class="muted">Для синхронного воспроизведения используй прямую ссылку MP4/WebM. Сторонние сайты откроются во встроенном окне, но их плеер может не поддерживать синхронизацию.</p>
@@ -311,7 +311,7 @@ async function leaveVoice(){
 }
 $('voiceJoinBtn').onclick=joinVoice;$('voiceMuteBtn').onclick=toggleVoiceMute;$('voiceOutputBtn').onclick=toggleVoiceOutput;$('voiceLeaveBtn').onclick=leaveVoice;
 
-function roomSay(m){$('roomNotice').textContent=m}
+function roomSay(m){$('roomNotice').textContent=m;$('roomNotice').classList.remove('hidden')}
 function appendRoomMessage(m){const box=$('roomChat'),el=document.createElement('div');el.className='msg';const b=document.createElement('b');b.textContent=m.username||'Пользователь';const t=document.createElement('span');t.textContent=m.content||'';el.append(b,t);box.append(el);box.scrollTop=box.scrollHeight}
 async function openRoom(id,code){
  if(voiceActive)await leaveVoice();
@@ -428,7 +428,7 @@ $('openJoinRoomBtn').onclick=()=>{$('joinRoomError').textContent='';$('joinRoomM
 $('closeJoinRoomModal').onclick=()=> $('joinRoomModal').classList.add('hidden');
 $('joinRoomModal').addEventListener('click',e=>{if(e.target===$('joinRoomModal'))$('joinRoomModal').classList.add('hidden')});
 $('joinRoomBtn').onclick=async()=>{const code=$('joinCode').value.trim().toUpperCase();if(!code){$('joinRoomError').textContent='Введи код комнаты.';return}const b=$('joinRoomBtn');b.disabled=true;b.textContent='Подключаемся…';$('joinRoomError').textContent='';const {data,error}=await db.rpc('join_watch_room',{p_code:code});b.disabled=false;b.textContent='Войти';if(error){$('joinRoomError').textContent='Не удалось войти: '+error.message;return}$('joinRoomModal').classList.add('hidden');await openRoom(data,code)};
-$('backToRoomsBtn').onclick=()=>{$('roomWorkspace').classList.add('hidden');$('roomLobby').classList.remove('hidden');};
+$('backToRoomsBtn').onclick=()=>{$('roomWorkspace').classList.add('hidden');$('roomLobby').classList.remove('hidden');$('roomNotice').classList.add('hidden');};
 $('copyRoomCode').onclick=async()=>{try{await navigator.clipboard.writeText(activeRoomCode);roomSay('Код скопирован!')}catch(e){roomSay('Код комнаты: '+activeRoomCode)}};
 $('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
 
