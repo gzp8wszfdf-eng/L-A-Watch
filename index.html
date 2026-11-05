@@ -30,6 +30,31 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 .mandora-form input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);padding:10px;font-size:13px}
 .mandora-form button{border:0;border-radius:12px;padding:0 13px;background:var(--violet);color:#171321;font-weight:800}
 @media(max-width:520px){.mandora-launch{bottom:12px;left:10px}.mandora-window{left:10px;bottom:60px;width:calc(100vw - 20px);height:min(410px,calc(100dvh - 82px))}}
+
+/* YouTube-style full-screen picker */
+.youtube-picker-overlay{padding:0;background:#0f0f0f;backdrop-filter:none;align-items:stretch;justify-content:stretch}
+.youtube-picker-card{width:100%;height:100%;max-height:100dvh;max-width:none;border:0;border-radius:0;padding:calc(14px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:#0f0f0f;box-shadow:none;gap:15px}
+.youtube-picker-head{min-height:42px}
+.youtube-brand{display:flex;align-items:center;gap:10px}
+.youtube-brand svg{width:38px;height:27px;flex:none}
+.youtube-brand strong{font-size:20px;letter-spacing:-.5px;color:#f1f1f1}
+.youtube-close{width:40px;height:40px;border-radius:50%;background:#272727;color:#fff;font-size:22px}
+.youtube-picker-search{max-width:760px;width:100%;margin:2px auto 0;gap:0}
+.youtube-picker-search .field{height:46px;margin:0;border:1px solid #3f3f3f;border-radius:24px 0 0 24px;background:#121212;color:#f1f1f1;padding:0 18px;font-size:15px}
+.youtube-picker-search .field:focus{border-color:#3ea6ff}
+.youtube-search-btn{width:64px;height:46px;display:grid;place-items:center;border:1px solid #3f3f3f;border-left:0;border-radius:0 24px 24px 0;background:#272727;color:#f1f1f1}
+.youtube-search-btn svg{width:22px;height:22px}
+.youtube-status{max-width:760px;width:100%;margin:0 auto;color:#aaa}
+.youtube-picker-results{width:100%;max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));align-content:start;gap:14px;overflow:auto}
+.youtube-picker-results .result{margin:0;border:0;border-radius:12px;background:transparent!important;padding:8px!important;gap:12px}
+.youtube-picker-results .result:active{background:#272727!important}
+.youtube-picker-results .result img{width: min(42%,180px)!important;border-radius:10px!important}
+.youtube-picker-results .result strong{color:#f1f1f1;font-size:14px!important}
+.youtube-picker-results .result small{color:#aaa!important}
+.youtube-launch-btn{width:42px;height:38px;display:grid;place-items:center;padding:5px;border:1px solid #ffffff20;border-radius:10px;background:#ffffff0a;flex:none}
+.youtube-launch-btn svg{width:30px;height:22px;display:block}
+@media(min-width:700px){.youtube-picker-card{padding-left:32px;padding-right:32px}.youtube-picker-results{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}}
+
 </style></head>
 <body><div class="wrap">
 <header class="top"><button class="secondary menu-btn hidden" id="settingsBtn" aria-label="Открыть меню" title="Меню"><span></span><span></span><span></span></button><div class="brand"><div class="logo">L&A</div>Watch</div><div class="status" id="status">● подключение</div></header>
@@ -85,9 +110,9 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div id="roomWorkspace" class="hidden room-workspace">
 <div class="room-topbar"><button class="secondary" id="backToRoomsBtn">← К комнатам</button><button class="smallbtn hidden" id="guestExitRoomBtn">Выйти из гостя</button><div class="room-code-compact"><span>Код:</span> <strong id="roomCode" class="grad"></strong></div><div class="room-top-actions"><button class="smallbtn" id="copyRoomCode">Копировать</button><div class="room-top-icons"><button class="smallbtn viewers-eye" id="openRoomFriendsBtn" aria-label="Пригласить друзей" title="Пригласить друзей">＋</button><button class="smallbtn viewers-eye" id="openViewersBtn" aria-label="Зрители" title="Зрители">👁</button></div></div></div>
 <div class="screen room-video-screen hidden" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
-<section class="youtube-picker-overlay hidden" id="youtubeCatalog" role="dialog" aria-modal="true" aria-labelledby="youtubePickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div><strong id="youtubePickerTitle">▶ YouTube</strong><div class="muted">Найди видео и включи его для всех в комнате</div></div><button class="smallbtn" id="closeYoutubePickerBtn" aria-label="Закрыть">✕</button></div><form class="youtube-picker-search" id="youtubeSearchForm"><input class="field" id="youtubeSearchInput" placeholder="Что хочешь посмотреть?" autocomplete="off"><button class="primary" id="youtubeSearchBtn" type="submit">Найти</button></form><p class="muted" id="youtubeSearchStatus">Введи название видео или канала.</p><div id="youtubeSearchResults" class="youtube-picker-results"></div></div></section>
-<div class="room-video-controls"><button class="smallbtn" id="openYoutubePickerBtn" type="button">▶ YouTube</button><input id="videoUrl" class="field" placeholder="Ссылка на видео MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button><button class="smallbtn queue-action-btn" id="playNextQueueBtn" disabled aria-label="Следующее видео" title="Включить следующее видео">⏭</button><button class="smallbtn queue-action-btn" id="toggleVideoQueueBtn" aria-label="Показать очередь" title="Видео в очереди">☷</button></div>
-<a class="smallbtn" id="youtubeCatalogToggleBtn" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" style="display:block;width:100%;text-align:center;text-decoration:none">▶ Открыть YouTube</a>
+<section class="youtube-picker-overlay hidden" id="youtubeCatalog" role="dialog" aria-modal="true" aria-labelledby="youtubePickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div class="youtube-brand"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg><strong id="youtubePickerTitle">YouTube</strong></div><button class="youtube-close" id="closeYoutubePickerBtn" aria-label="Закрыть">✕</button></div><form class="youtube-picker-search" id="youtubeSearchForm"><input class="field" id="youtubeSearchInput" placeholder="Поиск" autocomplete="off"><button class="youtube-search-btn" id="youtubeSearchBtn" type="submit" aria-label="Найти"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></form><p class="muted youtube-status" id="youtubeSearchStatus">Найди видео и выбери его — оно запустится в комнате для всех.</p><div id="youtubeSearchResults" class="youtube-picker-results"></div></div></section>
+<div class="room-video-controls"><button class="youtube-launch-btn" id="openYoutubePickerBtn" type="button" aria-label="Открыть YouTube" title="YouTube"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg></button><input id="videoUrl" class="field" placeholder="Ссылка на видео MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button><button class="smallbtn queue-action-btn" id="playNextQueueBtn" disabled aria-label="Следующее видео" title="Включить следующее видео">⏭</button><button class="smallbtn queue-action-btn" id="toggleVideoQueueBtn" aria-label="Показать очередь" title="Видео в очереди">☷</button></div>
+
 <p class="muted room-help">YouTube-видео запускается для всех участников комнаты. Некоторые ролики могут запрещать встроенное воспроизведение.</p>
 <section class="panel room-chat-panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>💬 Общий чат</strong><span class="muted" style="font-size:11px">Сообщения комнаты</span></div><div class="row voice-chat-controls"><button class="secondary voice-toggle-btn" id="voiceJoinBtn" aria-label="Включить микрофон" title="Включить микрофон">🎙️ Микрофон выкл.</button><button class="secondary voice-toggle-btn" id="voiceOutputBtn" aria-label="Выключить звук голосового чата" title="Звук голосового чата включён">🔊 Звук вкл.</button><span class="muted voice-chat-status" id="voiceStatus">Голосовой чат выключен</span></div><div id="voiceCount" class="hidden">0 участников</div><div id="voiceUsers" class="hidden"></div><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></section>
 
