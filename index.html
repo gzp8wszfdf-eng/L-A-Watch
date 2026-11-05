@@ -692,28 +692,23 @@ async function searchActiveVideoProvider(){
  if(activeCatalogProvider==='youtube'){await searchYouTubeVideos();return}
  const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults'),btn=$('youtubeSearchBtn');
  if(!q){status.textContent='Напиши, что хочешь найти.';return}
- if(activeCatalogProvider==='vk'){
-  const link=document.createElement('a');link.className='result';link.href='https://vkvideo.ru/video?q='+encodeURIComponent(q);link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='color:#fff;text-decoration:none;display:block';
-  const title=document.createElement('strong');title.textContent='Открыть поиск «'+q+'» в VK Видео';title.style.cssText='display:block;font-size:15px';
-  const detail=document.createElement('small');detail.textContent='Откроется публичный поиск VK. Выбери видео и скопируй его ссылку.';link.append(title,detail);box.replaceChildren(link);
-  status.textContent='Поиск VK готов. Нажми на результат ниже.';return;
- }
- btn.disabled=true;status.textContent='Ищем видео на RUTUBE…';box.innerHTML='';
+ btn.disabled=true;box.innerHTML='';status.textContent=activeCatalogProvider==='vk'?'Ищем открытые видео VK…':'Ищем видео на RUTUBE…';
  try{
-  const response=await fetch('/api/rutube-search?q='+encodeURIComponent(q));
+  const endpoint=activeCatalogProvider==='vk'?'/api/vk-search':'/api/rutube-search';
+  const response=await fetch(endpoint+'?q='+encodeURIComponent(q));
   const data=await response.json();
-  if(!response.ok)throw new Error(data.error||'RUTUBE временно не отвечает');
+  if(!response.ok)throw new Error(data.error||'Сервис поиска временно не отвечает');
   const items=Array.isArray(data.items)?data.items:[];
-  if(!items.length){status.textContent='Ничего не найдено.';return}
-  status.textContent='Найдено видео RUTUBE: '+items.length;
+  if(!items.length){status.textContent=data.message||'Ничего не найдено. Попробуй другой запрос.';return}
+  status.textContent='Найдено видео '+(activeCatalogProvider==='vk'?'VK':'RUTUBE')+': '+items.length;
   items.forEach(item=>{
    if(!item.url)return;
-   const card=document.createElement('button');card.type='button';card.className='result';card.style.textAlign='left';
-   if(item.thumbnail){const img=document.createElement('img');img.src=item.thumbnail;img.alt='';img.loading='lazy';img.style.cssText='width:min(42%,180px);aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none;background:#050509';card.append(img)}
+   const card=document.createElement('button');card.type='button';card.className='result';card.style.textAlign='left';card.style.width='100%';
+   if(item.thumbnail){const img=document.createElement('img');img.src=item.thumbnail;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';img.style.cssText='width:min(42%,180px);aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none;background:#050509';card.append(img)}
    const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';
-   const title=document.createElement('strong');title.textContent=item.title||'Видео RUTUBE';title.style.cssText='display:block;font-size:14px;line-height:1.35';
-   const author=document.createElement('small');author.textContent=item.author||'RUTUBE';author.style.cssText='display:block;color:#aaa;margin-top:5px';
-   copy.append(title,author);card.append(copy);card.onclick=()=>playExternalCatalogVideo(item.url,'RUTUBE');box.append(card);
+   const title=document.createElement('strong');title.textContent=item.title||('Видео '+(activeCatalogProvider==='vk'?'VK':'RUTUBE'));title.style.cssText='display:block;font-size:14px;line-height:1.35';
+   const author=document.createElement('small');author.textContent=item.author||(activeCatalogProvider==='vk'?'VK Видео':'RUTUBE');author.style.cssText='display:block;color:#aaa;margin-top:5px';
+   copy.append(title,author);card.append(copy);card.onclick=()=>playExternalCatalogVideo(item.url,activeCatalogProvider==='vk'?'VK Видео':'RUTUBE');box.append(card);
   });
  }catch(error){status.textContent='Не удалось выполнить поиск: '+error.message}
  finally{btn.disabled=false}
