@@ -196,6 +196,7 @@ function startYoutubeSync(){
 function youtubeStateChanged(event){
  if(youtubeSuppress||!activeRoomId)return;
  const state=event.data;
+ if(state===YT.PlayerState.ENDED){playNextQueuedVideo(true);return}
  if(state===YT.PlayerState.PLAYING||state===YT.PlayerState.PAUSED){
   writeYoutubeState(state===YT.PlayerState.PLAYING,youtubePlayer?.getCurrentTime?.()||0);
  }
@@ -384,7 +385,7 @@ function renderRoomVideo(url,pos=0,playing=false){
    setTimeout(()=>clearInterval(wait),15000);
   }
  }else if(isDirectVideo(url)){const v=document.createElement('video');v.controls=true;v.playsInline=true;v.src=url;screen.append(v);roomVideo=v;
-  v.addEventListener('play',()=>writePlayback(true));v.addEventListener('pause',()=>{if(!v.ended)writePlayback(false)});v.addEventListener('seeked',()=>writePlayback(!v.paused));
+  v.addEventListener('play',()=>writePlayback(true));v.addEventListener('pause',()=>{if(!v.ended)writePlayback(false)});v.addEventListener('seeked',()=>writePlayback(!v.paused));v.addEventListener('ended',()=>playNextQueuedVideo(true));
   v.addEventListener('loadedmetadata',()=>{if(pos>0&&Math.abs(v.currentTime-pos)>2)v.currentTime=pos;if(playing)v.play().catch(()=>{})});
  }else{const frame=document.createElement('iframe');frame.src=url;frame.allow='autoplay; fullscreen; picture-in-picture';frame.allowFullscreen=true;screen.append(frame)}
 }
@@ -443,23 +444,25 @@ async function addVideoToQueue(){
  roomSay('Видео добавлено в общую очередь.');
  await refreshRoomVideoQueue();
 }
-async function playNextQueuedVideo(){
+async function playNextQueuedVideo(auto=false){
  if(queueBusy||!activeRoomId)return;
  queueBusy=true;$('playNextQueueBtn').disabled=true;
  const roomId=activeRoomId;
  try{
   const {data:item,error}=await db.from('room_video_queue').select('id,video_url').eq('room_id',roomId).order('created_at',{ascending:true}).order('id',{ascending:true}).limit(1).maybeSingle();
   if(error)throw error;
-  if(!item){roomSay('Очередь пуста.');return}
+  if(!item){if(auto)roomSay('Видео закончилось — очередь пуста. Добавь следующий ролик.');else roomSay('Очередь пуста.');return}
   const {data:claimed,error:claimError}=await db.from('room_video_queue').delete().eq('id',item.id).eq('room_id',roomId).select('id');
   if(claimError)throw claimError;
-  if(!claimed?.length){roomSay('Это видео уже запускает другой участник.');return}
-  $('videoUrl').value=item.video_url;renderRoomVideo(item.video_url,0,false);
-  const state={room_id:roomId,client_id:playbackClientId,video_url:item.video_url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};
+  if(!claimed?.length)return;
+  if(roomId!==activeRoomId)return;
+  $('videoUrl').value=item.video_url;
+  renderRoomVideo(item.video_url,0,true);
+  const state={room_id:roomId,client_id:playbackClientId,video_url:item.video_url,video_position:0,is_playing:true,updated_at:new Date().toISOString()};
   broadcastPlayback(state);
   const {error:saveError}=await db.from('playback_state').upsert(state);
   if(saveError){await db.from('room_video_queue').insert({room_id:roomId,video_url:item.video_url,added_by:currentUser.id});throw saveError}
-  roomSay('Следующее видео загружено для всех участников комнаты.');
+  roomSay(auto?'Следующее видео запущено автоматически!':'Следующее видео запущено для всех участников комнаты.');
  }catch(e){roomSay('Не удалось запустить видео: '+e.message)}
  finally{queueBusy=false;await refreshRoomVideoQueue()}
 }
