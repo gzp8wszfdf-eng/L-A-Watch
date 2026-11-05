@@ -482,7 +482,7 @@ async function openRoom(id,code){
  const {data:msgs,error}=await db.from('messages').select('*').eq('room_id',id).order('created_at').limit(100);$('roomChat').innerHTML='';
  if(error)roomSay('Комната открыта, ошибка чата: '+error.message);else(msgs||[]).forEach(appendRoomMessage);
  const {data:s}=await db.from('playback_state').select('*').eq('room_id',id).maybeSingle();
- if(s?.video_url){$('videoUrl').value=s.video_url;renderRoomVideo(s.video_url,s.video_position||0,s.is_playing)}else showYouTubeCatalog()
+ if(s?.video_url){$('videoUrl').value=s.video_url;renderRoomVideo(s.video_url,s.video_position||0,s.is_playing)}else{$('videoUrl').value='';$('youtubeCatalog').classList.add('hidden');$('galleryPicker').classList.add('hidden');$('videoScreen').classList.remove('hidden');$('videoScreen').innerHTML='<div class="muted" style="text-align:center;padding:24px">Комната готова 🍿<br>Нажми на значок YouTube или галереи, чтобы выбрать видео или фото.</div>'}
  roomChannel=db.channel('watch-room-'+id,{config:{presence:{key:currentUser.id}}})
  .on('broadcast',{event:'voice-signal'},({payload})=>voiceSignal(payload))
  .on('presence',{event:'sync'},()=>{renderVoiceUsers();renderRoomViewers();if(voiceActive)voicePresence().forEach(p=>voiceOffer(p.userId).catch(e=>console.error(e)))})
