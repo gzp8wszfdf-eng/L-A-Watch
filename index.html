@@ -681,8 +681,8 @@ function setCatalogProvider(provider){
   $('youtubeSearchStatus').textContent='Ищи открытые видео RUTUBE без входа в аккаунт.';
  }else{
   $('youtubeSearchInput').placeholder='Что найти в VK Видео?';
-  $('youtubeSearchStatus').textContent='Введи название и нажми поиск — откроется VK Видео.';
-  $('videoProviderNote').textContent='Найди ролик в VK, открой его и скопируй ссылку. Вернись в L&A Watch и вставь её в поле «Вставь ссылку на видео с любого сайта» под значками в комнате, затем нажми «Открыть».';
+  $('youtubeSearchStatus').textContent='Введи название ролика и нажми поиск. Затем скопируй ссылку на ролик в VK и вставь её в поле ссылки в комнате.';
+  $('videoProviderNote').textContent='<b>Как добавить видео из VK:</b><br>1. Введи название ролика и нажми поиск — VK Видео откроется в новой вкладке.<br>2. Открой нужный ролик в VK Видео. Нажми «Поделиться» → «Копировать ссылку».<br>3. Вернись в L&amp;A Watch, закрой это окно поиска и вставь ссылку в поле «Вставь ссылку на видео с любого сайта» под значками в комнате.<br>4. Нажми «Открыть» — видео появится в комнате у всех участников.<br><small>Важно: видео должно быть доступно для просмотра и разрешать встраивание. Некоторые ролики VK могут не открываться внутри сторонних сайтов.</small>';
  }
 }
 $('providerYoutubeTab').onclick=()=>setCatalogProvider('youtube');
@@ -695,7 +695,7 @@ async function searchActiveVideoProvider(){
  if(activeCatalogProvider==='vk'){
   const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
   window.open(searchUrl,'_blank','noopener');
-  status.textContent='Открыл VK Видео в новой вкладке. Скопируй ссылку на нужный ролик и вставь её в поле ссылки в комнате.';
+  status.textContent='VK Видео открыто в новой вкладке. Инструкция по добавлению ролика остаётся здесь — выполни шаги выше.';
   return;
  }
  btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
