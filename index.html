@@ -717,8 +717,9 @@ async function searchActiveVideoProvider(){
  if(activeCatalogProvider==='vk'){
   const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
   sessionStorage.setItem('la_vk_return','1');
-  status.textContent='Открываем VK Видео. После копирования ссылки вернись сюда кнопкой «Назад».';
-  window.location.assign(searchUrl);
+  status.textContent='VK Видео откроется отдельно. После копирования ссылки просто вернись в эту вкладку L&A Watch.';
+  const vkTab=window.open(searchUrl,'_blank');
+  if(!vkTab){status.textContent='Браузер заблокировал новую вкладку. Разреши всплывающие окна или открой VK Видео вручную.';sessionStorage.removeItem('la_vk_return');}
   return;
  }
  btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
