@@ -508,7 +508,6 @@ function showYouTubeCatalog(){
 async function searchYouTubeVideos(){
  const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults');
  if(!q){status.textContent='Напиши, что хочешь посмотреть.';return}
- if(!YOUTUBE_API_KEY||YOUTUBE_API_KEY==='ВСТАВЬ_СЮДА_API_KEY'){status.textContent='Нужно добавить ключ YouTube API в код сайта.';return}
  const btn=$('youtubeSearchBtn');btn.disabled=true;btn.textContent='Ищем…';status.textContent='Ищем видео на YouTube…';box.innerHTML='';
  try{
   const res=await fetch('/.netlify/functions/youtube-search?q='+encodeURIComponent(q));const data=await res.json();
