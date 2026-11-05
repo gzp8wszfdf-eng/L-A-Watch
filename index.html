@@ -56,6 +56,22 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 .youtube-launch-btn svg{width:30px;height:22px;display:block}
 @media(min-width:700px){.youtube-picker-card{padding-left:32px;padding-right:32px}.youtube-picker-results{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}}
 
+
+/* Gallery picker */
+.gallery-picker-overlay{position:fixed;inset:0;z-index:10060;background:#0f0f0f;display:flex;align-items:stretch;justify-content:stretch;padding:0}
+.gallery-picker-overlay.hidden{display:none!important}
+.gallery-picker-card{width:100%;height:100%;display:flex;flex-direction:column;gap:18px;padding:calc(16px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));background:#0f0f0f;color:#f1f1f1}
+.gallery-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gallery-picker-head strong{font-size:21px}
+.gallery-picker-close{width:40px;height:40px;border-radius:50%;background:#272727;color:#fff;font-size:22px}
+.gallery-picker-body{width:min(560px,100%);margin:auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.gallery-picker-icon{width:76px;height:76px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,#ff70ae,#9b83ff);font-size:36px}
+.gallery-picker-body p{color:#aaa;margin:0;max-width:420px}
+.gallery-picker-body .primary{width:100%;max-width:340px}
+.gallery-file-info{width:100%;padding:13px;border:1px solid #383838;border-radius:13px;background:#1b1b1b;color:#ddd;overflow-wrap:anywhere;font-size:13px}
+.gallery-picker-status{min-height:22px;color:#aaa;font-size:13px}
+.gallery-launch-btn{width:42px;height:38px;display:grid;place-items:center;padding:5px;border:1px solid #ffffff20;border-radius:10px;background:#ffffff0a;color:#fff;font-size:21px;flex:none}
+.gallery-picker-body .primary:disabled{opacity:.45;cursor:not-allowed}
 </style></head>
 <body><div class="wrap">
 <header class="top"><button class="secondary menu-btn hidden" id="settingsBtn" aria-label="Открыть меню" title="Меню"><span></span><span></span><span></span></button><div class="brand"><div class="logo">L&A</div>Watch</div><div class="status" id="status">● подключение</div></header>
@@ -113,6 +129,7 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div class="screen room-video-screen hidden" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
 <section class="youtube-picker-overlay hidden" id="galleryPicker" role="dialog" aria-modal="true" aria-labelledby="galleryPickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div class="youtube-brand"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:30px;height:30px"><rect x="2" y="2" width="20" height="20" rx="5" fill="#8f7cff"/><circle cx="8" cy="8" r="2" fill="#fff"/><path d="M3 18l6-7 4 4 3-3 5 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><strong id="galleryPickerTitle">Галерея</strong></div><button class="youtube-close" id="closeGalleryPickerBtn" aria-label="Закрыть">✕</button></div><p class="muted" style="color:#aaa">Выбери фото или видео из галереи iPhone. После загрузки оно появится у всех участников комнаты.</p><input id="galleryFileInput" type="file" accept="image/*,video/*" hidden><button type="button" class="primary" id="gallerySelectBtn" style="width:100%;max-width:420px;margin:8px auto;padding:15px;border-radius:24px">＋ Выбрать фото или видео</button><p class="muted" id="galleryUploadStatus" style="text-align:center;color:#aaa">Поддерживаются фото и видео до 50 МБ.</p></div></section>
 <section class="youtube-picker-overlay hidden" id="youtubeCatalog" role="dialog" aria-modal="true" aria-labelledby="youtubePickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div class="youtube-brand"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg><strong id="youtubePickerTitle">YouTube</strong></div><button class="youtube-close" id="closeYoutubePickerBtn" aria-label="Закрыть">✕</button></div><div class="youtube-tabs"><button type="button" class="youtube-tab active" id="youtubeVideosTab">Видео</button><button type="button" class="youtube-tab" id="youtubeChannelsTab">Каналы</button></div><form class="youtube-picker-search" id="youtubeSearchForm"><input class="field" id="youtubeSearchInput" placeholder="Поиск видео" autocomplete="off"><button class="youtube-search-btn" id="youtubeSearchBtn" type="submit" aria-label="Найти"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></form><button type="button" class="youtube-back hidden" id="youtubeChannelBack">← К результатам каналов</button><p class="muted youtube-status" id="youtubeSearchStatus">Найди видео или открой канал любимого блогера.</p><div id="youtubeSearchResults" class="youtube-picker-results"></div></div></section>
+<section class="gallery-picker-overlay hidden" id="galleryCatalog" role="dialog" aria-modal="true" aria-labelledby="galleryPickerTitle"><div class="gallery-picker-card"><div class="gallery-picker-head"><strong id="galleryPickerTitle">▧ Галерея</strong><button class="gallery-picker-close" id="closeGalleryPickerBtn" type="button" aria-label="Закрыть">✕</button></div><div class="gallery-picker-body"><div class="gallery-picker-icon">▧</div><strong>Выбери фото или видео</strong><p>Выбранный файл загрузится в комнату, и его смогут увидеть все участники.</p><input id="galleryFileInput" type="file" accept="image/*,video/*" hidden><button class="primary" id="chooseGalleryFileBtn" type="button">Открыть галерею</button><div class="gallery-file-info" id="galleryFileInfo">Файл не выбран</div><button class="primary" id="uploadGalleryFileBtn" type="button" disabled>Загрузить и открыть всем</button><div class="gallery-picker-status" id="galleryPickerStatus">Поддерживаются фото и видео до 50 МБ.</div></div></div></section>
 <div class="room-video-controls"><button class="youtube-launch-btn" id="openYoutubePickerBtn" type="button" aria-label="Открыть YouTube" title="YouTube"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg></button><button class="youtube-launch-btn" id="openGalleryPickerBtn" type="button" aria-label="Открыть галерею" title="Галерея"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#8f7cff"/><circle cx="8" cy="8" r="2" fill="#fff"/><path d="M3 18l6-7 4 4 3-3 5 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="videoUrl" class="field" placeholder="Ссылка на видео MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button><button class="smallbtn queue-action-btn" id="playNextQueueBtn" disabled aria-label="Следующее видео" title="Включить следующее видео">⏭</button><button class="smallbtn queue-action-btn" id="toggleVideoQueueBtn" aria-label="Показать очередь" title="Видео в очереди">☷</button></div>
 
 <p class="muted room-help">YouTube-видео запускается для всех участников комнаты. Некоторые ролики могут запрещать встроенное воспроизведение.</p>
@@ -516,7 +533,8 @@ async function refreshRoomFriendInvites(){
 $('openRoomFriendsBtn').onclick=async()=>{$('roomFriendsOverlay').classList.remove('hidden');await refreshRoomFriendInvites()};
 $('closeRoomFriendsBtn').onclick=()=>$('roomFriendsOverlay').classList.add('hidden');
 $('roomFriendsOverlay').onclick=e=>{if(e.target===$('roomFriendsOverlay'))$('roomFriendsOverlay').classList.add('hidden')};
-function isDirectVideo(u){return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(u)}
+function isDirectVideo(u){return /\.(mp4|webm|ogg|mov|m4v)(?:[?#].*)?$/i.test(u)}
+function isDirectImage(u){return /\.(jpe?g|png|webp|gif|heic|heif)(?:[?#].*)?$/i.test(u)}
 function getRoomMediaPath(u){return typeof u==='string'&&u.startsWith('room-media://')?u.slice('room-media://'.length):null}
 function getYouTubeId(raw){
  try{
@@ -530,6 +548,53 @@ function getYouTubeId(raw){
  }catch(e){}
  return null;
 }
+function showGalleryCatalog(){
+ if(!activeRoomId)return roomSay('Сначала войди в комнату.');
+ $('galleryFileInput').value='';$('galleryFileInfo').textContent='Файл не выбран';$('uploadGalleryFileBtn').disabled=true;
+ $('galleryPickerStatus').textContent=isGuest()?'Загружать фото и видео могут только зарегистрированные пользователи.':'Выбери фото или видео из галереи iPhone. Максимум 50 МБ.';
+ $('chooseGalleryFileBtn').disabled=isGuest();$('galleryCatalog').classList.remove('hidden');
+}
+$('openGalleryPickerBtn').onclick=showGalleryCatalog;
+$('closeGalleryPickerBtn').onclick=()=>$('galleryCatalog').classList.add('hidden');
+$('galleryCatalog').addEventListener('click',e=>{if(e.target===$('galleryCatalog'))$('galleryCatalog').classList.add('hidden')});
+$('chooseGalleryFileBtn').onclick=()=>$('galleryFileInput').click();
+function galleryFileMime(file){
+ const ext=(file.name.split('.').pop()||'').toLowerCase();
+ const byExt={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',heic:'image/heic',heif:'image/heif',mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',m4v:'video/x-m4v'};
+ const allowed=['image/jpeg','image/png','image/webp','image/gif','image/heic','image/heif','video/mp4','video/webm','video/quicktime','video/x-m4v'];
+ const mime=allowed.includes(file.type)?file.type:(byExt[ext]||'');
+ return allowed.includes(mime)?mime:'';
+}
+$('galleryFileInput').addEventListener('change',()=>{
+ const file=$('galleryFileInput').files?.[0];$('uploadGalleryFileBtn').disabled=true;
+ if(!file){$('galleryFileInfo').textContent='Файл не выбран';return}
+ const mime=galleryFileMime(file),size=file.size;
+ $('galleryFileInfo').textContent=file.name+' · '+(size/1024/1024).toFixed(1)+' МБ';
+ if(!mime){$('galleryPickerStatus').textContent='Этот формат пока не поддерживается. Выбери JPG, PNG, HEIC, MP4 или MOV.';return}
+ if(size>50*1024*1024){$('galleryPickerStatus').textContent='Файл больше 50 МБ. Выбери файл поменьше.';return}
+ $('galleryPickerStatus').textContent=mime.startsWith('video/')?'Видео готово к загрузке.':'Фото готово к загрузке.';
+ $('uploadGalleryFileBtn').disabled=isGuest();
+});
+$('uploadGalleryFileBtn').onclick=async()=>{
+ if(isGuest())return roomSay('Загружать медиа могут только зарегистрированные пользователи.');
+ const file=$('galleryFileInput').files?.[0],mime=file&&galleryFileMime(file);
+ if(!file||!mime||file.size>50*1024*1024||!activeRoomId)return;
+ const roomId=activeRoomId,button=$('uploadGalleryFileBtn');button.disabled=true;$('chooseGalleryFileBtn').disabled=true;$('galleryPickerStatus').textContent='Загружаем файл… не закрывай окно.';
+ try{
+  const extByMime={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/heic':'heic','image/heif':'heif','video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov','video/x-m4v':'m4v'};
+  const token=crypto.randomUUID?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(36).slice(2));
+  const path=roomId+'/'+currentUser.id+'/'+token+'.'+extByMime[mime];
+  const {error:uploadError}=await db.storage.from('room-media').upload(path,file,{cacheControl:'3600',contentType:mime,upsert:false});
+  if(uploadError)throw uploadError;
+  if(roomId!==activeRoomId){$('galleryPickerStatus').textContent='Файл загружен, но ты уже вышел из комнаты.';return}
+  const mediaUrl='room-media://'+path;
+  $('videoUrl').value=mediaUrl;$('galleryCatalog').classList.add('hidden');
+  const isVideo=mime.startsWith('video/');renderRoomVideo(mediaUrl,0,isVideo);
+  const state={room_id:roomId,client_id:playbackClientId,video_url:mediaUrl,video_position:0,is_playing:isVideo,updated_at:new Date().toISOString()};
+  broadcastPlayback(state);const {error:stateError}=await db.from('playback_state').upsert(state);
+  roomSay(stateError?'Файл загружен, но не удалось отправить его участникам: '+stateError.message:'Файл загружен! Показываем его всем участникам комнаты.');
+ }catch(error){$('galleryPickerStatus').textContent='Не удалось загрузить: '+(error.message||'проверь подключение и попробуй ещё раз');button.disabled=false;$('chooseGalleryFileBtn').disabled=false}
+};
 function showYouTubeCatalog(){
  $('videoScreen').classList.remove('hidden');$('youtubeCatalog').classList.remove('hidden');
 }
@@ -568,7 +633,17 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
 }
 // YouTube opens as the real website in a separate browser tab so account sign-in can work.
 function renderRoomVideo(url,pos=0,playing=false){
- const screen=$('videoScreen');$('youtubeCatalog').classList.add('hidden');screen.classList.remove('hidden');screen.innerHTML='';roomVideo=null;stopYoutubeSync();youtubePlayer=null;youtubeSuppress=false;
+ const screen=$('videoScreen');$('youtubeCatalog').classList.add('hidden');$('galleryCatalog')?.classList.add('hidden');screen.classList.remove('hidden');screen.innerHTML='';roomVideo=null;stopYoutubeSync();youtubePlayer=null;youtubeSuppress=false;
+ if(url.startsWith('room-media://')){
+  const path=url.slice('room-media://'.length),roomAtRequest=activeRoomId;
+  screen.innerHTML='<div class="muted">Загружаем файл из галереи…</div>';
+  db.storage.from('room-media').createSignedUrl(path,604800).then(({data,error})=>{
+   if(roomAtRequest!==activeRoomId||$('videoUrl').value.trim()!==url)return;
+   if(error||!data?.signedUrl){screen.innerHTML='<div class="muted">Не удалось открыть файл. Возможно, ты больше не участник комнаты.</div>';roomSay('Не удалось получить доступ к файлу из галереи: '+(error?.message||'нет ссылки'));return}
+   renderRoomVideo(data.signedUrl,pos,playing);
+  });
+  return;
+ }
  const ytId=getYouTubeId(url);
  if(ytId){
   const frame=document.createElement('div');frame.id='youtube-player-frame';frame.style.cssText='position:absolute;inset:0;width:100%;height:100%';screen.append(frame);
@@ -585,6 +660,7 @@ function renderRoomVideo(url,pos=0,playing=false){
    setTimeout(()=>clearInterval(wait),15000);
   }
  }else if(getRoomMediaPath(url)){const mediaPath=getRoomMediaPath(url),isImage=/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(mediaPath);if(isImage){const img=document.createElement('img');img.alt='Фото из галереи';img.style.cssText='width:100%;height:100%;object-fit:contain;position:absolute;inset:0;background:#000';screen.append(img);db.storage.from('room-media').createSignedUrl(mediaPath,21600).then(({data,error})=>{if(error)throw error;if(img.isConnected)img.src=data.signedUrl}).catch(e=>roomSay('Не удалось открыть фото: '+e.message))}else{const v=document.createElement('video');v.controls=true;v.playsInline=true;v.style.cssText='width:100%;height:100%;position:absolute;inset:0;object-fit:contain;background:#000';screen.append(v);roomVideo=v;v.addEventListener('play',()=>writePlayback(true));v.addEventListener('pause',()=>{if(!v.ended)writePlayback(false)});v.addEventListener('seeked',()=>writePlayback(!v.paused));v.addEventListener('ended',()=>playNextQueuedVideo(true));v.addEventListener('loadedmetadata',()=>{if(pos>0&&Math.abs(v.currentTime-pos)>2)v.currentTime=pos;if(playing)v.play().catch(()=>{})});db.storage.from('room-media').createSignedUrl(mediaPath,21600).then(({data,error})=>{if(error)throw error;if(v.isConnected)v.src=data.signedUrl}).catch(e=>roomSay('Не удалось открыть видео: '+e.message))}
+ }else if(isDirectImage(url)){const img=document.createElement('img');img.src=url;img.alt='Фото из галереи';img.style.cssText='width:100%;height:100%;object-fit:contain;background:#000';screen.append(img);
  }else if(isDirectVideo(url)){const v=document.createElement('video');v.controls=true;v.playsInline=true;v.src=url;screen.append(v);roomVideo=v;
   v.addEventListener('play',()=>writePlayback(true));v.addEventListener('pause',()=>{if(!v.ended)writePlayback(false)});v.addEventListener('seeked',()=>writePlayback(!v.paused));v.addEventListener('ended',()=>playNextQueuedVideo(true));
   v.addEventListener('loadedmetadata',()=>{if(pos>0&&Math.abs(v.currentTime-pos)>2)v.currentTime=pos;if(playing)v.play().catch(()=>{})});
