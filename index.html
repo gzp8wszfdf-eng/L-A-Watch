@@ -248,7 +248,7 @@ $('blockFriendBtn').onclick=async()=>{if(!activeFriend||!confirm('Заблоки
 $('sendDm').onclick=async()=>{const content=$('dmText').value.trim();if(!content||!activeFriend)return;const {error}=await db.from('direct_messages').insert({sender_id:currentUser.id,recipient_id:activeFriend.id,content});if(error)return alert(error.message);$('dmText').value='';await loadDm()};
 $('dmText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendDm').click()});
 
-const YOUTUBE_API_KEY='ВСТАВЬ_СЮДА_API_KEY';
+// YouTube search runs through a Netlify Function; the API key stays server-side.
 let activeRoomId=null,activeRoomCode=null,roomChannel=null,roomVideo=null,isApplyingRemote=false,lastSyncWrite=0;
 const playbackClientId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random());
 let youtubePlayer=null,youtubeReady=false,youtubeSuppress=false,youtubeSyncTimer=null;
@@ -511,8 +511,7 @@ async function searchYouTubeVideos(){
  if(!YOUTUBE_API_KEY||YOUTUBE_API_KEY==='ВСТАВЬ_СЮДА_API_KEY'){status.textContent='Нужно добавить ключ YouTube API в код сайта.';return}
  const btn=$('youtubeSearchBtn');btn.disabled=true;btn.textContent='Ищем…';status.textContent='Ищем видео на YouTube…';box.innerHTML='';
  try{
-  const url='https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q='+encodeURIComponent(q)+'&key='+encodeURIComponent(YOUTUBE_API_KEY);
-  const res=await fetch(url);const data=await res.json();
+  const res=await fetch('/.netlify/functions/youtube-search?q='+encodeURIComponent(q));const data=await res.json();
   if(!res.ok)throw new Error(data?.error?.message||'Ошибка YouTube API');
   const items=data.items||[];if(!items.length){status.textContent='Ничего не найдено. Попробуй другой запрос.';return}
   status.textContent='Найдено видео: '+items.length;
