@@ -46,6 +46,7 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <label class="muted">Электронная почта</label><input id="loginEmail" type="email" class="field" placeholder="you@example.com">
 <label class="muted">Пароль</label><input id="loginPass" type="password" class="field" placeholder="Твой пароль">
 <button class="primary" id="loginBtn">Войти</button><div class="muted" id="loginMsg"></div><p class="muted">Забыл пароль? Восстановление добавим следующим этапом.</p></div>
+<div class="panel guest-entry"><h3>Пока просто посмотреть?</h3><p class="muted">Войди как гость: можно смотреть открытые комнаты и подключаться по коду. Для общения и создания комнат нужен аккаунт.</p><button class="secondary" id="guestLoginBtn" style="width:100%">Продолжить как гость</button><div class="muted" id="guestLoginMsg"></div></div>
 </section>
 <section id="appArea" class="hidden">
 <div class="menu-overlay hidden" id="menuOverlay"><div class="menu-backdrop" id="menuBackdrop"></div><aside class="menu-drawer" id="settingsPanel"><div id="menuHome"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Меню</h3><button class="secondary" id="closeMenuBtn" aria-label="Закрыть меню">✕</button></div><div class="menu-items"><button class="menu-item" id="editProfileOpenBtn"><span class="menu-icon">👤</span><span><strong>Мой профиль</strong><small>Редактировать профиль · Фото, имя и описание</small></span><b>›</b></button><button class="menu-item" data-menu-page="security"><span class="menu-icon">🔒</span><span><strong>Безопасность</strong><small>Пароль и приватность</small></span><b>›</b></button><button class="menu-item" data-menu-page="notifications"><span class="menu-icon">🔔</span><span><strong>Уведомления</strong><small>Настройки оповещений</small></span><b>›</b></button><button class="menu-item" data-menu-page="about"><span class="menu-icon">ℹ️</span><span><strong>О приложении</strong><small>Версия и информация L&A Watch</small></span><b>›</b></button></div><button class="menu-logout" id="logoutBtn">↪️ Выйти из аккаунта</button></div><section class="menu-subpage hidden" id="securityPage"><div class="row menu-page-head"><button class="secondary menu-back" data-menu-back>←</button><h3>🔒 Безопасность</h3></div><h4>Изменить пароль</h4><input class="field" id="newPassword" type="password" minlength="6" placeholder="Новый пароль (от 6 символов)"><input class="field" id="confirmPassword" type="password" placeholder="Повтори новый пароль"><button class="primary" id="changePasswordBtn" style="width:100%">Сохранить пароль</button><div class="muted" id="passwordMsg"></div><div class="divider"></div><h4>Приватность</h4><p class="muted">Не сообщай пароль другим людям. Доступ к аккаунту защищён входом по электронной почте и паролю.</p></section><section class="menu-subpage hidden" id="notificationsPage"><div class="row menu-page-head"><button class="secondary menu-back" data-menu-back>←</button><h3>🔔 Уведомления</h3></div><p class="muted">Настройки оповещений будут сохранены на этом устройстве.</p><label class="menu-toggle"><span>Приглашения в комнаты</span><input type="checkbox" id="notifyRooms" checked></label><label class="menu-toggle"><span>Заявки в друзья</span><input type="checkbox" id="notifyFriends" checked></label><label class="menu-toggle"><span>Сообщения</span><input type="checkbox" id="notifyMessages" checked></label><div class="muted" id="notifySaveMsg">Изменения сохраняются автоматически.</div></section><section class="menu-subpage hidden" id="aboutPage"><div class="row menu-page-head"><button class="secondary menu-back" data-menu-back>←</button><h3>ℹ️ О приложении</h3></div><div class="about-logo">L&A <span>Watch</span></div><h4>Смотрите вместе, даже на расстоянии ❤️</h4><p class="muted">L&A Watch — место, где можно находить друзей, создавать комнаты и смотреть видео вместе.</p><div class="divider"></div><div class="row" style="justify-content:space-between"><span class="muted">Версия</span><strong>1.0.0</strong></div><p class="muted">Спасибо, что пользуешься L&A Watch!</p></section></aside></div><div class="panel"><div class="row" style="justify-content:space-between"><div class="row"><div id="myAvatar" class="profile-avatar profile-avatar-fallback">👤</div><div><h2 style="margin:0">Привет, <span id="helloName"></span>! ❤️</h2><div class="muted" id="myUsername"></div></div></div></div></div><div class="panel hidden" id="profilePanel"><div class="row" style="justify-content:space-between"><h3>✨ Редактировать профиль</h3><button class="secondary" id="profileBackBtn">← Назад</button></div><div class="profile-edit-grid"><div><label class="muted">Отображаемое имя</label><input id="profileDisplayName" class="field" maxlength="40" placeholder="Как тебя называть?"></div><div><label class="muted">О себе</label><input id="profileBio" class="field" maxlength="160" placeholder="Пара слов о себе"></div><div class="wide row"><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="field" style="max-width:100%"><span class="muted">Фото до 2 МБ</span></div></div><button class="primary" id="saveProfileBtn">Сохранить профиль</button><div class="muted" id="profileMsg"></div></div>
@@ -63,7 +64,7 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div class="row room-entry-actions" style="gap:10px">
 <button class="primary" id="createRoomBtn" style="flex:1">＋ Создать комнату</button>
 <button class="secondary" id="openJoinRoomBtn" style="flex:1">↗ Войти в комнату</button>
-</div>
+</div><button class="secondary hidden" id="guestExitBtn" style="width:100%;margin-top:10px">Выйти из гостевого режима</button>
 <div id="joinRoomModal" class="hidden" style="position:fixed;inset:0;z-index:10000;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px">
 <section class="panel" style="width:100%;max-width:380px;margin:0">
 <div class="row" style="justify-content:space-between"><strong>Войти в комнату</strong><button class="secondary" id="closeJoinRoomModal">✕</button></div>
@@ -107,24 +108,24 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 const SUPABASE_URL='https://jtkuhrytrikgkqephjah.supabase.co';
 const SUPABASE_KEY='sb_publishable_QoWJI1f7iAEH4ZWl0nX6qA_qHGe5dit';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=id=>document.getElementById(id);let currentUser=null,activeFriend=null,friendChatOpen=false,onlinePresenceChannel=null,onlinePresenceUserId=null,onlineUserIds=new Set();const onlineGraceTimers=new Map();
+const $=id=>document.getElementById(id);let currentUser=null,activeFriend=null,friendChatOpen=false,onlinePresenceChannel=null,onlinePresenceUserId=null,onlineUserIds=new Set();const onlineGraceTimers=new Map();const isGuest=()=>!!(currentUser?.is_anonymous||currentUser?.app_metadata?.provider==='anonymous');
 // Keep friend chat and profile overlays at the document root, outside the dashboard grid.
 document.body.append($('dmPanel'),$('friendProfileOverlay'));$('dmPanel').classList.add('chat-page');
 const appTabPanels={friends:['friendSearchPanel','requestsPanel','friendsPanel'],room:['roomPanel']};
-function setAppTab(tab){if(!appTabPanels[tab])tab='friends';try{localStorage.setItem('lawatch:lastAppTab',tab)}catch(e){}for(const id of ['friendSearchPanel','requestsPanel','friendsPanel','roomPanel'])$(id)?.classList.toggle('hidden',!appTabPanels[tab]?.includes(id));$('dmPanel').classList.toggle('hidden',tab!=='friends'||!friendChatOpen);if(tab!=='friends')$('friendMenu').classList.add('hidden');document.querySelectorAll('[data-app-tab]').forEach(b=>b.classList.toggle('active',b.dataset.appTab===tab));}
+function setAppTab(tab){if(isGuest())tab='room';if(!appTabPanels[tab])tab='friends';try{localStorage.setItem('lawatch:lastAppTab',tab)}catch(e){}for(const id of ['friendSearchPanel','requestsPanel','friendsPanel','roomPanel'])$(id)?.classList.toggle('hidden',!appTabPanels[tab]?.includes(id));$('dmPanel').classList.toggle('hidden',tab!=='friends'||!friendChatOpen);if(tab!=='friends')$('friendMenu').classList.add('hidden');document.querySelectorAll('[data-app-tab]').forEach(b=>b.classList.toggle('active',b.dataset.appTab===tab));}
 function openFriendChat(p){activeFriend=p;friendChatOpen=true;$('dmTitle').textContent=safeName(p);$('dmUsername').textContent='@'+(p.username||'user');const av=$('dmAvatar');if(p.avatar_url){av.outerHTML='<img id="dmAvatar" class="friend-avatar" alt="" src="'+String(p.avatar_url).replace(/&/g,'&amp;').replace(/\"/g,'&quot;')+'">'}else{av.outerHTML='<span id="dmAvatar" class="friend-avatar">'+(safeName(p).trim()[0]||'👤').toUpperCase()+'</span>'}$('friendMenu').classList.add('hidden');$('dmMessages').innerHTML='';$('dmEmpty').textContent='Пока нет сообщений. Напиши первым ❤️';$('dmEmpty').classList.remove('hidden');$('dmPanel').classList.remove('hidden');document.body.classList.add('chat-open');document.body.style.overflow='hidden';loadDm();}
 document.querySelectorAll('[data-app-tab]').forEach(b=>b.addEventListener('click',()=>setAppTab(b.dataset.appTab)));
 function say(id,msg){$(id).textContent=msg}
 function safeName(p){return p.display_name||p.username||'Пользователь'}
 function refreshFriendStatuses(){document.querySelectorAll('[data-friend-id]').forEach(card=>{const status=card.querySelector('[data-online-status]');if(!status)return;const online=onlineUserIds.has(card.dataset.friendId);status.textContent=online?'🟢 В сети':'⚫ Не в сети';status.style.color=online?'var(--green)':'var(--muted)'})}
 async function stopOnlinePresence(){const old=onlinePresenceChannel;onlinePresenceChannel=null;onlinePresenceUserId=null;onlineUserIds.clear();if(old)await db.removeChannel(old);refreshFriendStatuses()}
-async function startOnlinePresence(){if(!currentUser)return;if(onlinePresenceChannel&&onlinePresenceUserId===currentUser.id)return;if(onlinePresenceChannel)await stopOnlinePresence();const userId=currentUser.id;onlinePresenceUserId=userId;const channel=db.channel('lawatch-online-v1',{config:{presence:{key:userId}}});onlinePresenceChannel=channel;channel.on('presence',{event:'sync'},()=>{if(onlinePresenceChannel!==channel)return;const present=new Set(Object.keys(channel.presenceState()));for(const id of present){const timer=onlineGraceTimers.get(id);if(timer){clearTimeout(timer);onlineGraceTimers.delete(id)}}for(const id of onlineUserIds){if(!present.has(id)&&!onlineGraceTimers.has(id)){const timer=setTimeout(()=>{onlineGraceTimers.delete(id);onlineUserIds.delete(id);refreshFriendStatuses()},10000);onlineGraceTimers.set(id,timer)}}onlineUserIds=new Set([...present,...onlineGraceTimers.keys()]);refreshFriendStatuses()}).subscribe(async status=>{if(status==='SUBSCRIBED'&&onlinePresenceChannel===channel){const {error}=await channel.track({user_id:userId,online_at:new Date().toISOString()});if(error)console.error('Не удалось включить онлайн-статус:',error.message)}})}
+async function startOnlinePresence(){if(!currentUser||isGuest())return;if(onlinePresenceChannel&&onlinePresenceUserId===currentUser.id)return;if(onlinePresenceChannel)await stopOnlinePresence();const userId=currentUser.id;onlinePresenceUserId=userId;const channel=db.channel('lawatch-online-v1',{config:{presence:{key:userId}}});onlinePresenceChannel=channel;channel.on('presence',{event:'sync'},()=>{if(onlinePresenceChannel!==channel)return;const present=new Set(Object.keys(channel.presenceState()));for(const id of present){const timer=onlineGraceTimers.get(id);if(timer){clearTimeout(timer);onlineGraceTimers.delete(id)}}for(const id of onlineUserIds){if(!present.has(id)&&!onlineGraceTimers.has(id)){const timer=setTimeout(()=>{onlineGraceTimers.delete(id);onlineUserIds.delete(id);refreshFriendStatuses()},10000);onlineGraceTimers.set(id,timer)}}onlineUserIds=new Set([...present,...onlineGraceTimers.keys()]);refreshFriendStatuses()}).subscribe(async status=>{if(status==='SUBSCRIBED'&&onlinePresenceChannel===channel){const {error}=await channel.track({user_id:userId,online_at:new Date().toISOString()});if(error)console.error('Не удалось включить онлайн-статус:',error.message)}})}
 function renderMyAvatar(url){const old=$('myAvatar');if(url){const img=document.createElement('img');img.id='myAvatar';img.className='profile-avatar';img.alt='Аватар';img.src=url;old.replaceWith(img)}else{old.className='profile-avatar profile-avatar-fallback';old.textContent='👤'}}
 $('avatarFile').onchange=()=>{const file=$('avatarFile').files?.[0];if(!file)return;if(file.size>2*1024*1024){$('avatarFile').value='';return say('profileMsg','Файл больше 2 МБ. Выбери фотографию поменьше.')}if(!file.type.startsWith('image/')){$('avatarFile').value='';return say('profileMsg','Можно загрузить только изображение.')}say('profileMsg','Фото выбрано. Нажми «Сохранить профиль».')};
 $('saveProfileBtn').onclick=async()=>{if(!currentUser)return;const display=$('profileDisplayName').value.trim(),bio=$('profileBio').value.trim(),file=$('avatarFile').files?.[0];if(display.length>40||bio.length>160)return say('profileMsg','Проверь длину имени и описания.');const btn=$('saveProfileBtn');btn.disabled=true;btn.textContent='Сохраняем…';try{let avatarUrl;if(file){const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'})[file.type];if(!ext)throw new Error('Формат фото не поддерживается.');const path=currentUser.id+'/avatar-'+Date.now()+'.'+ext;const {error:uploadError}=await db.storage.from('avatars').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(uploadError)throw uploadError;avatarUrl=db.storage.from('avatars').getPublicUrl(path).data.publicUrl;}const changes={display_name:display||null,bio};if(avatarUrl)changes.avatar_url=avatarUrl;const {data,error}=await db.from('profiles').update(changes).eq('id',currentUser.id).select('*').single();if(error)throw error;$('helloName').textContent=safeName(data);$('myUsername').textContent='@'+(data.username||'');renderMyAvatar(data.avatar_url);$('avatarFile').value='';say('profileMsg','Профиль сохранён ❤️');await refreshSocial();$('profilePanel').classList.add('hidden');$('settingsPanel').classList.remove('hidden');}catch(e){say('profileMsg','Не удалось сохранить: '+e.message)}finally{btn.disabled=false;btn.textContent='Сохранить профиль'}};
 
 async function refreshSocial(){
- if(!currentUser)return;
+ if(!currentUser||isGuest())return;
  const {data:reqs,error:rerr}=await db.from('friend_requests').select('*').eq('recipient_id',currentUser.id).eq('status','pending');
  if(rerr){say('requests','Не удалось загрузить заявки: '+rerr.message)}else{
   $('requests').innerHTML='';
@@ -147,40 +148,24 @@ async function refreshSocial(){
 }
 let roomRestoreTask=null;
 async function showSession(session){
- currentUser=session?.user||null;
- $('hero').classList.toggle('hidden',!!currentUser);
- if(currentUser){let savedTab='friends';try{const tab=localStorage.getItem('lawatch:lastAppTab');if(tab==='room'||tab==='friends')savedTab=tab}catch(e){}setAppTab(savedTab);}
- $('authArea').classList.toggle('hidden',!!currentUser);$('appArea').classList.toggle('hidden',!currentUser);
- $('status').textContent=currentUser?'● аккаунт подключён':'● не выполнен вход'; $('settingsBtn').classList.toggle('hidden',!currentUser);
+ currentUser=session?.user||null;const guest=isGuest();
+ $('hero').classList.toggle('hidden',!!currentUser);$('authArea').classList.toggle('hidden',!!currentUser);$('appArea').classList.toggle('hidden',!currentUser);
+ $('status').textContent=guest?'● гостевой режим':currentUser?'● аккаунт подключён':'● не выполнен вход';$('settingsBtn').classList.toggle('hidden',!currentUser||guest);
+ $('guestExitBtn').classList.toggle('hidden',!guest);$('createRoomBtn').classList.toggle('hidden',guest);$('openRoomFriendsBtn').classList.toggle('hidden',guest);
+ $('addVideoQueueBtn').classList.toggle('hidden',guest);$('playNextQueueBtn').classList.toggle('hidden',guest);
+ $('roomChatText').disabled=guest;$('sendRoomMessage').disabled=guest;$('roomChatText').placeholder=guest?'Войдите в аккаунт, чтобы писать в чат':'Написать сообщение…';
+ $('voiceJoinBtn').disabled=guest;if(guest){$('voiceJoinBtn').textContent='🎙️ Микрофон недоступен';$('voiceJoinBtn').title='Голосовой чат доступен зарегистрированным пользователям'}else{$('voiceJoinBtn').textContent='🎙️ Микрофон выкл.';$('voiceJoinBtn').title='Включить микрофон'}
+ document.querySelector('[data-app-tab="friends"]')?.classList.toggle('hidden',guest);
+ if(currentUser){let tab='friends';if(guest)tab='room';else try{const saved=localStorage.getItem('lawatch:lastAppTab');if(saved==='room'||saved==='friends')tab=saved}catch(e){}setAppTab(tab)}
  if(!currentUser){await stopOnlinePresence();friendChatOpen=false;activeFriend=null;$('globalMsg').classList.remove('hidden');await leaveVoice();activeRoomId=null;activeRoomCode=null;if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}return}
- const userId=currentUser.id;
- await startOnlinePresence();
- // Restore the room before loading profile/social data, so those requests cannot block recovery.
- if(!activeRoomId && !roomRestoreTask){
-  roomRestoreTask=(async()=>{
-   try{
-    const raw=localStorage.getItem('lawatch:lastRoom');
-    const saved=raw?JSON.parse(raw):null;
-    if(saved?.id&&saved?.code&&saved?.userId===userId&&currentUser?.id===userId){
-     roomSay('Возвращаем тебя в комнату…');
-     const {data:membership,error:membershipError}=await db.from('room_members').select('room_id').eq('room_id',saved.id).eq('user_id',userId).maybeSingle();
-     if(membershipError)throw membershipError;
-     if(membership?.room_id)await openRoom(saved.id,saved.code);
-     else{localStorage.removeItem('lawatch:lastRoom');roomSay('Старая комната недоступна. Создай новую или войди по коду.')}
-    }
-   }catch(e){console.error('Не удалось восстановить комнату',e);roomSay('Не удалось восстановить комнату. Попробуй войти по коду.')}
-   finally{roomRestoreTask=null}
-  })();
-  await roomRestoreTask;
- }
- const {data:p,error}=await db.from('profiles').select('*').eq('id',userId).maybeSingle();
- if(error){say('globalMsg','Ошибка профиля: '+error.message);return}
- $('helloName').textContent=safeName(p||{username:currentUser.email?.split('@')[0]});
- $('myUsername').textContent='@'+(p?.username||'');
- $('profileDisplayName').value=p?.display_name||'';$('profileBio').value=p?.bio||'';renderMyAvatar(p?.avatar_url);
- $('globalMsg').classList.add('hidden');
- await refreshSocial();
- await refreshPublicRooms();await refreshRoomInvites();
+ const userId=currentUser.id;if(!guest)await startOnlinePresence();else await stopOnlinePresence();
+ if(!activeRoomId&&!roomRestoreTask){roomRestoreTask=(async()=>{try{const raw=localStorage.getItem('lawatch:lastRoom');const saved=raw?JSON.parse(raw):null;
+  if(saved?.id&&saved?.code&&saved?.userId===userId&&currentUser?.id===userId){roomSay('Возвращаем тебя в комнату…');const {data:membership,error:membershipError}=await db.from('room_members').select('room_id').eq('room_id',saved.id).eq('user_id',userId).maybeSingle();if(membershipError)throw membershipError;if(membership?.room_id)await openRoom(saved.id,saved.code);else{localStorage.removeItem('lawatch:lastRoom');roomSay('Старая комната недоступна. Создай новую или войди по коду.')}}
+ }catch(e){console.error('Не удалось восстановить комнату',e);roomSay('Не удалось восстановить комнату. Попробуй войти по коду.')}finally{roomRestoreTask=null}})();await roomRestoreTask}
+ if(guest){$('helloName').textContent='Гость';$('myUsername').textContent='Гостевой режим';renderMyAvatar(null);$('profilePanel').classList.add('hidden');$('globalMsg').classList.add('hidden')}
+ else{const {data:p,error}=await db.from('profiles').select('*').eq('id',userId).maybeSingle();if(error){say('globalMsg','Ошибка профиля: '+error.message);return}
+  $('helloName').textContent=safeName(p||{username:currentUser.email?.split('@')[0]});$('myUsername').textContent='@'+(p?.username||'');$('profileDisplayName').value=p?.display_name||'';$('profileBio').value=p?.bio||'';renderMyAvatar(p?.avatar_url);$('globalMsg').classList.add('hidden');await refreshSocial();await refreshRoomInvites()}
+ await refreshPublicRooms();
 }
 $('signupBtn').onclick=async()=>{
  const username=$('signupName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
@@ -194,6 +179,8 @@ $('signupBtn').onclick=async()=>{
  if(data.session)await showSession(data.session);
 };
 $('loginBtn').onclick=async()=>{say('loginMsg','Входим…');const {data,error}=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});if(error)return say('loginMsg','Ошибка: '+error.message);say('loginMsg','Успешный вход!');await showSession(data.session)};
+$('guestLoginBtn').onclick=async()=>{const b=$('guestLoginBtn');b.disabled=true;b.textContent='Подключаем…';say('guestLoginMsg','Создаём временный гостевой вход…');const {data,error}=await db.auth.signInAnonymously();b.disabled=false;b.textContent='Продолжить как гость';if(error){say('guestLoginMsg','Не удалось войти: '+error.message+' Проверь, включены ли Anonymous Sign-Ins в Supabase.');return}say('guestLoginMsg','Готово! Заходим…');await showSession(data.session)};
+$('guestExitBtn').onclick=async()=>{if(!isGuest())return;await db.auth.signOut();await showSession(null)};
 $('logoutBtn').onclick=async()=>{closeAccountMenu();await db.auth.signOut();await showSession(null)}; function openAccountMenu(){$('menuOverlay').classList.remove('hidden');showMenuHome();document.body.style.overflow='hidden'} function closeAccountMenu(){$('menuOverlay').classList.add('hidden');document.body.style.overflow=''} function showMenuHome(){document.querySelectorAll('.menu-subpage').forEach(p=>p.classList.add('hidden'));$('menuHome').classList.remove('hidden')} function showMenuPage(name){$('menuHome').classList.add('hidden');document.querySelectorAll('.menu-subpage').forEach(p=>p.classList.add('hidden'));$(name+'Page').classList.remove('hidden')} $('settingsBtn').onclick=()=>{closeAccountMenu();$('profilePanel').classList.add('hidden');openAccountMenu()}; $('closeMenuBtn').onclick=closeAccountMenu; $('menuBackdrop').onclick=closeAccountMenu; $('editProfileOpenBtn').onclick=()=>{closeAccountMenu();$('profilePanel').classList.remove('hidden')}; $('profileBackBtn').onclick=()=>{$('profilePanel').classList.add('hidden');openAccountMenu()}; document.querySelectorAll('[data-menu-page]').forEach(x=>x.onclick=()=>showMenuPage(x.dataset.menuPage));document.querySelectorAll('[data-menu-back]').forEach(x=>x.onclick=showMenuHome); $('changePasswordBtn').onclick=async()=>{const p=$('newPassword').value,q=$('confirmPassword').value;if(p.length<6)return say('passwordMsg','Пароль должен содержать минимум 6 символов.');if(p!==q)return say('passwordMsg','Пароли не совпадают.');const x=$('changePasswordBtn');x.disabled=true;x.textContent='Сохраняем…';const {error}=await db.auth.updateUser({password:p});x.disabled=false;x.textContent='Сохранить пароль';if(error)return say('passwordMsg','Не удалось изменить пароль: '+error.message);$('newPassword').value='';$('confirmPassword').value='';say('passwordMsg','Пароль успешно изменён ❤️')}; ['Rooms','Friends','Messages'].forEach(k=>{const el=$('notify'+k),key='lawatch:notify:'+k.toLowerCase();el.checked=localStorage.getItem(key)!=='false';el.onchange=()=>{localStorage.setItem(key,String(el.checked));say('notifySaveMsg','Настройки сохранены на этом устройстве.')}});
 $('searchBtn').onclick=async()=>{const n=$('searchName').value.trim().replace(/^@/,'');if(!n)return;const {data,error}=await db.from('profiles').select('id,username,display_name').ilike('username',n).neq('id',currentUser.id).limit(10);$('searchResults').innerHTML='';if(error){say('searchResults','Ошибка: '+error.message);return}if(!data.length){say('searchResults','Пользователь не найден.');return}data.forEach(p=>{const el=document.createElement('div');el.className='result';const s=document.createElement('span');s.textContent=safeName(p)+' · @'+p.username;const b=document.createElement('button');b.className='smallbtn';b.textContent='Добавить';b.onclick=async()=>{const {error}=await db.from('friend_requests').insert({requester_id:currentUser.id,recipient_id:p.id});if(error)alert(error.code==='23505'?'Заявка уже отправлена.':error.message);else{b.textContent='Отправлено ✓';b.disabled=true}};el.append(s,b);$('searchResults').append(el)})};
 async function loadDm(){if(!activeFriend)return;const {data,error}=await db.from('direct_messages').select('*').or('and(sender_id.eq.'+currentUser.id+',recipient_id.eq.'+activeFriend.id+'),and(sender_id.eq.'+activeFriend.id+',recipient_id.eq.'+currentUser.id+')').order('created_at');$('dmMessages').innerHTML='';if(error){say('dmEmpty','Не удалось загрузить переписку: '+error.message);$('dmEmpty').classList.remove('hidden');return}if(!data?.length){$('dmEmpty').textContent='Пока нет сообщений. Напиши первым ❤️';$('dmEmpty').classList.remove('hidden')}else $('dmEmpty').classList.add('hidden');for(const m of data){const el=document.createElement('div');el.className='msg';const b=document.createElement('b');b.textContent=m.sender_id===currentUser.id?'Ты':'@'+activeFriend.username;const t=document.createElement('span');t.textContent=m.content;el.append(b,t);$('dmMessages').append(el)}}
@@ -303,7 +290,7 @@ function voiceSend(payload){if(roomChannel)return roomChannel.send({type:'broadc
 let roomViewerProfile=null;
 async function trackRoomViewer(){
  if(!roomChannel||!currentUser)return;
- if(!roomViewerProfile){const {data:p}=await db.from('profiles').select('display_name,username,avatar_url').eq('id',currentUser.id).maybeSingle();roomViewerProfile=p||{}}
+ if(!roomViewerProfile){if(isGuest())roomViewerProfile={display_name:'Гость',username:'',avatar_url:null};else{const {data:p}=await db.from('profiles').select('display_name,username,avatar_url').eq('id',currentUser.id).maybeSingle();roomViewerProfile=p||{}}}
  await roomChannel.track({userId:currentUser.id,displayName:roomViewerProfile.display_name||roomViewerProfile.username||'Участник',username:roomViewerProfile.username||'',avatarUrl:roomViewerProfile.avatar_url||'',voiceActive:!!voiceActive,viewer:true});
 }
 function roomViewers(){
@@ -426,11 +413,11 @@ async function appendRoomMessage(m){
  avatar.className='room-msg-avatar';avatar.alt='';
  if(profile?.avatar_url){avatar.src=profile.avatar_url;avatar.onerror=()=>{avatar.replaceWith(makeRoomFallback(m.username))}}
  else avatar.textContent=(m.username||'П').trim().charAt(0).toUpperCase()||'П';
- if(profile?.id){avatar.tabIndex=0;avatar.setAttribute('role','button');avatar.setAttribute('aria-label','Открыть профиль '+(m.username||''));avatar.title='Открыть профиль';avatar.onclick=()=>openFriendProfile(profile);avatar.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFriendProfile(profile)}};avatar.style.cursor='pointer'}
+ if(profile?.id&&!isGuest()){avatar.tabIndex=0;avatar.setAttribute('role','button');avatar.setAttribute('aria-label','Открыть профиль '+(m.username||''));avatar.title='Открыть профиль';avatar.onclick=()=>openFriendProfile(profile);avatar.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFriendProfile(profile)}};avatar.style.cursor='pointer'}
  el.append(avatar);
  const body=document.createElement('div');body.className='room-msg-body';
  const b=document.createElement('b');b.textContent=m.username||'Пользователь';
- if(profile?.id){b.tabIndex=0;b.setAttribute('role','button');b.setAttribute('aria-label','Открыть профиль '+(m.username||''));b.title='Открыть профиль';b.style.cursor='pointer';b.onclick=()=>openFriendProfile(profile);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFriendProfile(profile)}}}
+ if(profile?.id&&!isGuest()){b.tabIndex=0;b.setAttribute('role','button');b.setAttribute('aria-label','Открыть профиль '+(m.username||''));b.title='Открыть профиль';b.style.cursor='pointer';b.onclick=()=>openFriendProfile(profile);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFriendProfile(profile)}}}
  const t=document.createElement('span');t.textContent=m.content||'';
  body.append(b,t);el.append(body);box.append(el);box.scrollTop=box.scrollHeight;
 }
@@ -461,7 +448,7 @@ async function refreshPublicRooms(){
 }
 let seenRoomInviteIds=new Set(),activeRoomInvite=null;
 async function refreshRoomInvites(){
- if(!currentUser)return;
+ if(!currentUser||isGuest())return;
  const {data,error}=await db.rpc('get_my_room_invites');
  if(error){console.error('Room invites:',error.message);return}
  if(!data?.length)return;
@@ -483,9 +470,9 @@ async function answerRoomInvite(accept){
 }
 $('acceptRoomInvite').onclick=()=>answerRoomInvite(true);
 $('declineRoomInvite').onclick=()=>answerRoomInvite(false);
-setInterval(()=>{if(currentUser)refreshRoomInvites()},5000);
+setInterval(()=>{if(currentUser&&!isGuest())refreshRoomInvites()},5000);
 async function refreshRoomFriendInvites(){
- const box=$('roomFriendInviteList');if(!box||!currentUser||!activeRoomId)return;box.innerHTML='Загружаем друзей…';const {data:all,error}=await db.from('friend_requests').select('requester_id,recipient_id').eq('status','accepted').or('requester_id.eq.'+currentUser.id+',recipient_id.eq.'+currentUser.id);
+ const box=$('roomFriendInviteList');if(!box||!currentUser||!activeRoomId||isGuest())return;box.innerHTML='Загружаем друзей…';const {data:all,error}=await db.from('friend_requests').select('requester_id,recipient_id').eq('status','accepted').or('requester_id.eq.'+currentUser.id+',recipient_id.eq.'+currentUser.id);
  box.innerHTML='';if(error){box.textContent='Не удалось загрузить друзей: '+error.message;return}const ids=(all||[]).map(x=>x.requester_id===currentUser.id?x.recipient_id:x.requester_id);
  if(!ids.length){box.textContent='Пока нет друзей для приглашения.';return}const {data:ps,error:e}=await db.from('profiles').select('id,username,display_name').in('id',ids);if(e){box.textContent='Ошибка: '+e.message;return}
  (ps||[]).forEach(p=>{const el=document.createElement('div');el.className='result';const name=document.createElement('span');name.textContent=safeName(p)+' · @'+(p.username||'');const b=document.createElement('button');b.className='smallbtn';b.textContent='Пригласить';b.onclick=async()=>{b.disabled=true;const {error:ie}=await db.rpc('invite_friend_to_room',{p_room_id:activeRoomId,p_friend_id:p.id});if(ie){b.disabled=false;return alert(ie.message)}b.textContent='Отправлено ✓'};el.append(name,b);box.append(el)});
@@ -548,7 +535,7 @@ async function applyRemotePlayback(s){
  try{if(Math.abs(roomVideo.currentTime-(Number(s.video_position)||0))>0.75)roomVideo.currentTime=Number(s.video_position)||0;if(s.is_playing&&roomVideo.paused)await roomVideo.play().catch(()=>{});if(!s.is_playing&&!roomVideo.paused)roomVideo.pause()}
  finally{setTimeout(()=>{isApplyingRemote=false},300)}
 }
-$('createRoomBtn').onclick=async()=>{const b=$('createRoomBtn');b.disabled=true;b.textContent='Создаём…';const {data,error}=await db.rpc('create_watch_room',{p_visibility:'private',p_title:'Комната просмотра'});b.disabled=false;b.textContent='＋ Создать комнату';if(error){roomSay('Ошибка: '+error.message);return}const x=Array.isArray(data)?data[0]:data;if(!x?.room_id||!x?.room_code){roomSay('Не удалось получить код комнаты.');return}await openRoom(x.room_id,x.room_code);await refreshPublicRooms()};
+$('createRoomBtn').onclick=async()=>{if(isGuest())return roomSay('Создавать комнаты могут только зарегистрированные пользователи.');const b=$('createRoomBtn');b.disabled=true;b.textContent='Создаём…';const {data,error}=await db.rpc('create_watch_room',{p_visibility:'private',p_title:'Комната просмотра'});b.disabled=false;b.textContent='＋ Создать комнату';if(error){roomSay('Ошибка: '+error.message);return}const x=Array.isArray(data)?data[0]:data;if(!x?.room_id||!x?.room_code){roomSay('Не удалось получить код комнаты.');return}await openRoom(x.room_id,x.room_code);await refreshPublicRooms()};
 $('openJoinRoomBtn').onclick=()=>{$('joinRoomError').textContent='';$('joinRoomModal').classList.remove('hidden');$('joinCode').focus()};
 $('closeJoinRoomModal').onclick=()=> $('joinRoomModal').classList.add('hidden');
 $('joinRoomModal').addEventListener('click',e=>{if(e.target===$('joinRoomModal'))$('joinRoomModal').classList.add('hidden')});
@@ -574,11 +561,12 @@ async function refreshRoomVideoQueue(){
   info.textContent=(index+1)+'. '+host+' — '+item.video_url;
   const remove=document.createElement('button');remove.className='smallbtn';remove.textContent='Убрать';remove.disabled=queueBusy;
   remove.onclick=async()=>{const {error:e}=await db.from('room_video_queue').delete().eq('id',item.id).eq('room_id',roomId);if(e)roomSay('Не удалось убрать видео: '+e.message);else await refreshRoomVideoQueue()};
-  row.append(info,remove);box.append(row);
+  if(!isGuest()){const remove=document.createElement('button');remove.className='smallbtn';remove.textContent='Убрать';remove.disabled=queueBusy;remove.onclick=async()=>{const {error:e}=await db.from('room_video_queue').delete().eq('id',item.id).eq('room_id',roomId);if(e)roomSay('Не удалось убрать видео: '+e.message);else await refreshRoomVideoQueue()};row.append(remove)}row.append(info);box.append(row);
  });
  next.disabled=queueBusy||!data.length;
 }
 async function addVideoToQueue(){
+ if(isGuest())return roomSay('Добавлять видео в очередь могут только зарегистрированные пользователи.');
  const url=$('videoUrl').value.trim();
  if(!activeRoomId)return roomSay('Сначала войди в комнату.');
  if(!/^https?:\/\//i.test(url))return roomSay('Вставь корректную ссылку http:// или https://');
@@ -588,6 +576,7 @@ async function addVideoToQueue(){
  await refreshRoomVideoQueue();
 }
 async function playNextQueuedVideo(auto=false){
+ if(isGuest())return roomSay('Управлять очередью могут только зарегистрированные пользователи.');
  if(queueBusy||!activeRoomId)return;
  queueBusy=true;$('playNextQueueBtn').disabled=true;
  const roomId=activeRoomId;
@@ -615,7 +604,7 @@ $('playNextQueueBtn').onclick=playNextQueuedVideo;
 $('toggleVideoQueueBtn').onclick=()=>{$('roomQueueOverlay').classList.remove('hidden');refreshRoomVideoQueue()};
 $('closeRoomQueueBtn').onclick=()=> $('roomQueueOverlay').classList.add('hidden');
 $('roomQueueOverlay').addEventListener('click',e=>{if(e.target===$('roomQueueOverlay'))$('roomQueueOverlay').classList.add('hidden')});
-$('sendRoomMessage').onclick=async()=>{const content=$('roomChatText').value.trim();if(!content||!activeRoomId)return;const {data:p}=await db.from('profiles').select('username').eq('id',currentUser.id).maybeSingle();const {error}=await db.from('messages').insert({room_id:activeRoomId,username:p?.username||'user',content});if(error)roomSay('Ошибка отправки: '+error.message);else $('roomChatText').value=''};
+$('sendRoomMessage').onclick=async()=>{if(isGuest())return roomSay('Чтобы писать в общий чат, войди в аккаунт.');const content=$('roomChatText').value.trim();if(!content||!activeRoomId)return;const {data:p}=await db.from('profiles').select('username').eq('id',currentUser.id).maybeSingle();const {error}=await db.from('messages').insert({room_id:activeRoomId,username:p?.username||'user',content});if(error)roomSay('Ошибка отправки: '+error.message);else $('roomChatText').value=''};
 $('roomChatText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendRoomMessage').click()});
 $('leaveRoomBtn').onclick=async()=>{await leaveVoice();if(roomChannel)await db.removeChannel(roomChannel);roomChannel=null;activeRoomId=null;activeRoomCode=null;roomVideo=null;try{localStorage.removeItem('lawatch:lastRoom')}catch(e){};$('roomWorkspace').classList.add('hidden');$('roomChat').innerHTML='';roomSay('Ты покинул комнату.')};
 
