@@ -84,9 +84,11 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div id="viewersOverlay" class="viewers-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewersTitle"><div class="viewers-card"><div class="viewers-head"><strong id="viewersTitle">Зрители комнаты</strong><button class="smallbtn" id="closeViewersBtn" aria-label="Закрыть">✕</button></div><div id="viewersList" class="viewers-list"><div class="muted">Пока никого нет.</div></div></div></div><div id="roomFriendsOverlay" class="viewers-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="roomFriendsTitle"><div class="viewers-card"><div class="viewers-head"><strong id="roomFriendsTitle">Пригласить друзей</strong><button class="smallbtn" id="closeRoomFriendsBtn" aria-label="Закрыть">✕</button></div><p class="muted" style="margin:0 0 12px">Выбери друзей, которым отправить приглашение в комнату.</p><div id="roomFriendInviteList" class="list muted">Загружаем друзей…</div></div></div><div id="roomQueueOverlay" class="viewers-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="roomQueueTitle"><div class="viewers-card"><div class="viewers-head"><strong id="roomQueueTitle">📺 Видео в очереди</strong><button class="smallbtn" id="closeRoomQueueBtn" aria-label="Закрыть">✕</button></div><div id="videoQueueList" class="list muted">Очередь пока пуста.</div></div></div>
 <div id="roomWorkspace" class="hidden room-workspace">
 <div class="room-topbar"><button class="secondary" id="backToRoomsBtn">← К комнатам</button><button class="smallbtn hidden" id="guestExitRoomBtn">Выйти из гостя</button><div class="room-code-compact"><span>Код:</span> <strong id="roomCode" class="grad"></strong></div><div class="room-top-actions"><button class="smallbtn" id="copyRoomCode">Копировать</button><div class="room-top-icons"><button class="smallbtn viewers-eye" id="openRoomFriendsBtn" aria-label="Пригласить друзей" title="Пригласить друзей">＋</button><button class="smallbtn viewers-eye" id="openViewersBtn" aria-label="Зрители" title="Зрители">👁</button></div></div></div>
-<div class="screen room-video-screen" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
+<div class="screen room-video-screen hidden" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
+<section class="panel" id="youtubeCatalog" style="margin:0;padding:13px"><div class="row" style="justify-content:space-between"><strong>▶ YouTube</strong><span class="muted">Выбери видео для совместного просмотра</span></div><div class="row" style="margin-top:9px"><input id="youtubeSearchInput" class="field" style="margin:0;min-width:0" placeholder="Найти видео на YouTube"><button class="primary" id="youtubeSearchBtn">Найти</button></div><div id="youtubeSearchStatus" class="muted" style="margin-top:8px">Введи название видео и нажми «Найти».</div><div id="youtubeSearchResults" style="display:grid;gap:9px;margin-top:10px"></div></section>
 <div class="room-video-controls"><input id="videoUrl" class="field" placeholder="Ссылка на видео MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button><button class="smallbtn queue-action-btn" id="playNextQueueBtn" disabled aria-label="Следующее видео" title="Включить следующее видео">⏭</button><button class="smallbtn queue-action-btn" id="toggleVideoQueueBtn" aria-label="Показать очередь" title="Видео в очереди">☷</button></div>
-<p class="muted room-help">Для лучшей синхронизации используй прямую ссылку MP4/WebM. У сторонних плееров синхронизация может не поддерживаться.</p>
+<button class="smallbtn" id="youtubeCatalogToggleBtn" style="width:100%">⌕ Найти другое видео на YouTube</button>
+<p class="muted room-help">YouTube-видео запускается для всех участников комнаты. Некоторые ролики могут запрещать встроенное воспроизведение.</p>
 <section class="panel room-chat-panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>💬 Общий чат</strong><span class="muted" style="font-size:11px">Сообщения комнаты</span></div><div class="row voice-chat-controls"><button class="secondary voice-toggle-btn" id="voiceJoinBtn" aria-label="Включить микрофон" title="Включить микрофон">🎙️ Микрофон выкл.</button><button class="secondary voice-toggle-btn" id="voiceOutputBtn" aria-label="Выключить звук голосового чата" title="Звук голосового чата включён">🔊 Звук вкл.</button><span class="muted voice-chat-status" id="voiceStatus">Голосовой чат выключен</span></div><div id="voiceCount" class="hidden">0 участников</div><div id="voiceUsers" class="hidden"></div><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></section>
 
 
@@ -246,6 +248,7 @@ $('blockFriendBtn').onclick=async()=>{if(!activeFriend||!confirm('Заблоки
 $('sendDm').onclick=async()=>{const content=$('dmText').value.trim();if(!content||!activeFriend)return;const {error}=await db.from('direct_messages').insert({sender_id:currentUser.id,recipient_id:activeFriend.id,content});if(error)return alert(error.message);$('dmText').value='';await loadDm()};
 $('dmText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendDm').click()});
 
+const YOUTUBE_API_KEY='ВСТАВЬ_СЮДА_API_KEY';
 let activeRoomId=null,activeRoomCode=null,roomChannel=null,roomVideo=null,isApplyingRemote=false,lastSyncWrite=0;
 const playbackClientId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random());
 let youtubePlayer=null,youtubeReady=false,youtubeSuppress=false,youtubeSyncTimer=null;
@@ -435,7 +438,7 @@ async function openRoom(id,code){
  const {data:msgs,error}=await db.from('messages').select('*').eq('room_id',id).order('created_at').limit(100);$('roomChat').innerHTML='';
  if(error)roomSay('Комната открыта, ошибка чата: '+error.message);else(msgs||[]).forEach(appendRoomMessage);
  const {data:s}=await db.from('playback_state').select('*').eq('room_id',id).maybeSingle();
- if(s?.video_url){$('videoUrl').value=s.video_url;renderRoomVideo(s.video_url,s.video_position||0,s.is_playing)}
+ if(s?.video_url){$('videoUrl').value=s.video_url;renderRoomVideo(s.video_url,s.video_position||0,s.is_playing)}else showYouTubeCatalog()
  roomChannel=db.channel('watch-room-'+id,{config:{presence:{key:currentUser.id}}})
  .on('broadcast',{event:'voice-signal'},({payload})=>voiceSignal(payload))
  .on('presence',{event:'sync'},()=>{renderVoiceUsers();renderRoomViewers();if(voiceActive)voicePresence().forEach(p=>voiceOffer(p.userId).catch(e=>console.error(e)))})
@@ -499,8 +502,46 @@ function getYouTubeId(raw){
  }catch(e){}
  return null;
 }
+function showYouTubeCatalog(){
+ $('videoScreen').classList.add('hidden');$('youtubeCatalog').classList.remove('hidden');
+}
+async function searchYouTubeVideos(){
+ const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults');
+ if(!q){status.textContent='Напиши, что хочешь посмотреть.';return}
+ if(!YOUTUBE_API_KEY||YOUTUBE_API_KEY==='ВСТАВЬ_СЮДА_API_KEY'){status.textContent='Нужно добавить ключ YouTube API в код сайта.';return}
+ const btn=$('youtubeSearchBtn');btn.disabled=true;btn.textContent='Ищем…';status.textContent='Ищем видео на YouTube…';box.innerHTML='';
+ try{
+  const url='https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q='+encodeURIComponent(q)+'&key='+encodeURIComponent(YOUTUBE_API_KEY);
+  const res=await fetch(url);const data=await res.json();
+  if(!res.ok)throw new Error(data?.error?.message||'Ошибка YouTube API');
+  const items=data.items||[];if(!items.length){status.textContent='Ничего не найдено. Попробуй другой запрос.';return}
+  status.textContent='Найдено видео: '+items.length;
+  items.forEach(item=>{
+   const id=item.id?.videoId,sn=item.snippet||{};if(!id)return;
+   const card=document.createElement('button');card.type='button';card.className='result';card.style.cssText='width:100%;text-align:left;background:#ffffff08;color:var(--text);border:1px solid var(--line);padding:9px;align-items:flex-start';
+   const img=document.createElement('img');img.src=sn.thumbnails?.medium?.url||sn.thumbnails?.default?.url||'';img.alt='';img.style.cssText='width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;flex:none;background:#050509';
+   const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';
+   const title=document.createElement('strong');title.textContent=sn.title||'Видео YouTube';title.style.cssText='display:block;font-size:13px;line-height:1.35';
+   const channel=document.createElement('small');channel.textContent=sn.channelTitle||'YouTube';channel.style.cssText='display:block;color:var(--muted);margin-top:5px';
+   copy.append(title,channel);card.append(img,copy);card.onclick=()=>playYouTubeFromCatalog(id);box.append(card);
+  });
+ }catch(e){status.textContent='Не удалось найти видео: '+e.message}
+ finally{btn.disabled=false;btn.textContent='Найти'}
+}
+async function playYouTubeFromCatalog(id){
+ if(!activeRoomId)return;
+ const url='https://www.youtube.com/watch?v='+id;$('videoUrl').value=url;
+ $('youtubeCatalog').classList.add('hidden');$('videoScreen').classList.remove('hidden');
+ renderRoomVideo(url,0,true);
+ const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString()};
+ broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);
+ roomSay(error?'Не удалось отправить видео участникам: '+error.message:'Запускаем видео для всех участников комнаты!');
+}
+$('youtubeSearchBtn').onclick=searchYouTubeVideos;
+$('youtubeSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchYouTubeVideos()});
+$('youtubeCatalogToggleBtn').onclick=()=>{if($('youtubeCatalog').classList.contains('hidden'))showYouTubeCatalog();else $('youtubeCatalog').classList.add('hidden')};
 function renderRoomVideo(url,pos=0,playing=false){
- const screen=$('videoScreen');screen.innerHTML='';roomVideo=null;stopYoutubeSync();youtubePlayer=null;youtubeSuppress=false;
+ const screen=$('videoScreen');$('youtubeCatalog').classList.add('hidden');screen.classList.remove('hidden');screen.innerHTML='';roomVideo=null;stopYoutubeSync();youtubePlayer=null;youtubeSuppress=false;
  const ytId=getYouTubeId(url);
  if(ytId){
   const frame=document.createElement('div');frame.id='youtube-player-frame';frame.style.cssText='position:absolute;inset:0;width:100%;height:100%';screen.append(frame);
