@@ -79,6 +79,16 @@ async function showSession(session){
  $('myUsername').textContent='@'+(p?.username||'');
  say('globalMsg','Ты вошёл в L&A Watch. Профиль готов.');
  await refreshSocial();
+ // Restore the last room for this signed-in user after a page reload.
+ if(!activeRoomId){
+  try{
+   const saved=JSON.parse(localStorage.getItem('lawatch:lastRoom')||'null');
+   if(saved?.id&&saved?.code&&saved?.userId===currentUser.id){
+    roomSay('Возвращаем тебя в комнату…');
+    await openRoom(saved.id,saved.code);
+   }
+  }catch(e){console.warn('Не удалось восстановить комнату',e)}
+ }
 }
 $('signupBtn').onclick=async()=>{
  const username=$('signupName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
@@ -120,7 +130,7 @@ function roomSay(m){$('roomNotice').textContent=m}
 function appendRoomMessage(m){const box=$('roomChat'),el=document.createElement('div');el.className='msg';const b=document.createElement('b');b.textContent=m.username||'Пользователь';const t=document.createElement('span');t.textContent=m.content||'';el.append(b,t);box.append(el);box.scrollTop=box.scrollHeight}
 async function openRoom(id,code){
  if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}
- activeRoomId=id;activeRoomCode=code;$('roomCode').textContent=code;$('roomWorkspace').classList.remove('hidden');roomSay('Ты в комнате! Отправь код другу.');
+ activeRoomId=id;activeRoomCode=code;try{localStorage.setItem('lawatch:lastRoom',JSON.stringify({id,code,userId:currentUser?.id||null}))}catch(e){};$('roomCode').textContent=code;$('roomWorkspace').classList.remove('hidden');roomSay('Ты в комнате! Отправь код другу.');
  const {data:msgs,error}=await db.from('messages').select('*').eq('room_id',id).order('created_at').limit(100);$('roomChat').innerHTML='';
  if(error)roomSay('Комната открыта, ошибка чата: '+error.message);else(msgs||[]).forEach(appendRoomMessage);
  const {data:s}=await db.from('playback_state').select('*').eq('room_id',id).maybeSingle();
@@ -191,7 +201,7 @@ $('copyRoomCode').onclick=async()=>{try{await navigator.clipboard.writeText(acti
 $('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const {error}=await db.from('playback_state').upsert({room_id:activeRoomId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()});roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
 $('sendRoomMessage').onclick=async()=>{const content=$('roomChatText').value.trim();if(!content||!activeRoomId)return;const {data:p}=await db.from('profiles').select('username').eq('id',currentUser.id).maybeSingle();const {error}=await db.from('messages').insert({room_id:activeRoomId,username:p?.username||'user',content});if(error)roomSay('Ошибка отправки: '+error.message);else $('roomChatText').value=''};
 $('roomChatText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendRoomMessage').click()});
-$('leaveRoomBtn').onclick=async()=>{if(roomChannel)await db.removeChannel(roomChannel);roomChannel=null;activeRoomId=null;activeRoomCode=null;roomVideo=null;$('roomWorkspace').classList.add('hidden');$('roomChat').innerHTML='';roomSay('Ты покинул комнату.')};
+$('leaveRoomBtn').onclick=async()=>{if(roomChannel)await db.removeChannel(roomChannel);roomChannel=null;activeRoomId=null;activeRoomCode=null;roomVideo=null;try{localStorage.removeItem('lawatch:lastRoom')}catch(e){};$('roomWorkspace').classList.add('hidden');$('roomChat').innerHTML='';roomSay('Ты покинул комнату.')};
 
 db.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>showSession(session),0)});
 (async()=>{const {data}=await db.auth.getSession();await showSession(data.session);if(!data.session)say('globalMsg','L&A Watch готов к регистрации и входу.');})();
