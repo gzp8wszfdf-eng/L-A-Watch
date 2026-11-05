@@ -639,7 +639,10 @@ $('mandoraForm').addEventListener('submit',async event=>{
   const send=$('mandoraSend');send.disabled=true;
   const waiting=mandoraBubble('bot','Секундочку, думаю…');
   try{
-    const response=await fetch('https://mindora-chatbot.onrender.com/watch/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,userId:currentUser.id})});
+    const {data:sessionData,error:sessionError}=await db.auth.getSession();
+    const accessToken=sessionData?.session?.access_token;
+    if(sessionError||!accessToken)throw new Error('Сессия закончилась. Войди в аккаунт заново ❤️');
+    const response=await fetch('https://mindora-chatbot.onrender.com/watch/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,userId:currentUser.id,accessToken})});
     const data=await response.json();
     waiting.remove();
     if(!response.ok)throw new Error(data.error||'Не получилось получить ответ');
