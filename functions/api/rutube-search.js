@@ -42,11 +42,14 @@ export async function onRequest(context) {
     }
 
     const data = await response.json();
-    const sourceItems = Array.isArray(data?.results)
-      ? data.results
-      : Array.isArray(data?.items)
-        ? data.items
-        : [];
+    const payload = data?.data && typeof data.data === "object" ? data.data : data;
+    const sourceItems = Array.isArray(payload?.results)
+      ? payload.results
+      : Array.isArray(payload?.items)
+        ? payload.items
+        : Array.isArray(payload?.video)
+          ? payload.video
+          : [];
 
     const items = sourceItems.map((item) => {
       const id = String(item?.id || item?.video_id || "").trim();
@@ -61,7 +64,7 @@ export async function onRequest(context) {
         id,
         title: String(item?.title || item?.name || "Видео RUTUBE").slice(0, 300),
         author: String(
-          item?.author?.name ||
+          (typeof item?.author === "string" ? item.author : item?.author?.name) ||
           item?.author_name ||
           item?.channel?.name ||
           item?.owner?.name ||
