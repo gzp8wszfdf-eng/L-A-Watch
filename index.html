@@ -147,10 +147,10 @@ async function openRoom(id,code){
  .on('postgres_changes',{event:'*',schema:'public',table:'playback_state',filter:'room_id=eq.'+id},p=>{const x=p.new;if(!x?.video_url)return;if($('videoUrl').value!==x.video_url){$('videoUrl').value=x.video_url;renderRoomVideo(x.video_url,x.video_position||0,x.is_playing)}else applyRemotePlayback(x)})
  .subscribe();
 }
-function isDirectVideo(u){return /\\.(mp4|webm|ogg)(\\?.*)?$/i.test(u)}
+function isDirectVideo(u){return /\.(mp4|webm|ogg)(\\?.*)?$/i.test(u)}
 function getYouTubeId(raw){
  try{
-  const u=new URL(raw),host=u.hostname.replace(/^www\\./,'').toLowerCase();
+  const u=new URL(raw),host=u.hostname.replace(/^www\./,'').toLowerCase();
   if(host==='youtu.be')return u.pathname.split('/').filter(Boolean)[0]||null;
   if(host==='youtube.com'||host==='m.youtube.com'||host==='youtube-nocookie.com'){
    if(u.pathname==='/watch')return u.searchParams.get('v');
