@@ -663,8 +663,7 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
  }
 let activeCatalogProvider='youtube';
 function restoreVkPasteField(){
- if(sessionStorage.getItem('la_vk_return')!=='1')return;
- sessionStorage.removeItem('la_vk_return');
+ try{if(sessionStorage.getItem('la_vk_return')!=='1')return;sessionStorage.removeItem('la_vk_return')}catch(e){return}
  $('youtubeCatalog').classList.add('hidden');
  $('videoScreen').classList.remove('hidden');
  const row=document.querySelector('.room-video-link-row'),field=$('videoUrl');
@@ -718,8 +717,7 @@ async function searchActiveVideoProvider(){
   const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
   sessionStorage.setItem('la_vk_return','1');
   status.textContent='VK Видео откроется отдельно. После копирования ссылки просто вернись в эту вкладку L&A Watch.';
-  const vkTab=window.open(searchUrl,'_blank');
-  if(!vkTab){status.textContent='Браузер заблокировал новую вкладку. Разреши всплывающие окна или открой VK Видео вручную.';sessionStorage.removeItem('la_vk_return');}
+  const link=document.createElement('a');link.href=searchUrl;link.target='_blank';link.rel='noopener noreferrer';link.style.display='none';document.body.append(link);link.click();link.remove();
   return;
  }
  btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
