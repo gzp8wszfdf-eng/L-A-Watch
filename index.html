@@ -101,7 +101,7 @@ $('sendDm').onclick=async()=>{const content=$('dmText').value.trim();if(!content
 let activeRoomId=null,activeRoomCode=null,roomChannel=null,roomVideo=null,isApplyingRemote=false,lastSyncWrite=0;
 let youtubePlayer=null,youtubeReady=false,youtubeSuppress=false,youtubeSyncTimer=null;
 window.onYouTubeIframeAPIReady=()=>{youtubeReady=true};
-function stopYoutubeSync(){if(youtubeSyncTimer){clearInterval(youtubeSyncTimer);youtubeSyncTimer=null}youtubePlayer=null;youtubeSuppress=false}
+function stopYoutubeSync(){if(youtubeSyncTimer){clearInterval(youtubeSyncTimer);youtubeSyncTimer=null}}
 function youtubeStateChanged(event){
  if(youtubeSuppress||!activeRoomId)return;
  const state=event.data;
@@ -144,7 +144,7 @@ function getYouTubeId(raw){
  return null;
 }
 function renderRoomVideo(url,pos=0,playing=false){
- const screen=$('videoScreen');screen.innerHTML='';roomVideo=null;stopYoutubeSync();
+ const screen=$('videoScreen');screen.innerHTML='';roomVideo=null;stopYoutubeSync();youtubePlayer=null;youtubeSuppress=false;
  const ytId=getYouTubeId(url);
  if(ytId){
   const frame=document.createElement('div');frame.id='youtube-player-frame';frame.style.cssText='position:absolute;inset:0;width:100%;height:100%';screen.append(frame);
