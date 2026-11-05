@@ -681,8 +681,8 @@ function setCatalogProvider(provider){
   $('youtubeSearchStatus').textContent='Ищи открытые видео RUTUBE без входа в аккаунт.';
  }else{
   $('youtubeSearchInput').placeholder='Что найти в VK Видео?';
-  $('youtubeSearchStatus').textContent='Ищем публичные видео VK через открытый поисковый индекс.';
-  $('videoProviderNote').textContent='Показываем найденные публичные видео VK прямо здесь. Выдача зависит от поискового индекса; закрытые и неиндексируемые ролики могут не попасть в результаты.';
+  $('youtubeSearchStatus').textContent='Введи название и нажми поиск — откроется VK Видео.';
+  $('videoProviderNote').textContent='Найди ролик в VK, открой его и скопируй ссылку. Вернись в L&A Watch и вставь её в поле «Вставь ссылку на видео с любого сайта» под значками в комнате, затем нажми «Открыть».';
  }
 }
 $('providerYoutubeTab').onclick=()=>setCatalogProvider('youtube');
@@ -692,7 +692,13 @@ async function searchActiveVideoProvider(){
  if(activeCatalogProvider==='youtube'){await searchYouTubeVideos();return}
  const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults'),btn=$('youtubeSearchBtn');
  if(!q){status.textContent='Напиши, что хочешь найти.';return}
- btn.disabled=true;box.innerHTML='';status.textContent=activeCatalogProvider==='vk'?'Ищем открытые видео VK…':'Ищем видео на RUTUBE…';
+ if(activeCatalogProvider==='vk'){
+  const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
+  window.open(searchUrl,'_blank','noopener');
+  status.textContent='Открыл VK Видео в новой вкладке. Скопируй ссылку на нужный ролик и вставь её в поле ссылки в комнате.';
+  return;
+ }
+ btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
  try{
   const endpoint=activeCatalogProvider==='vk'?'/api/vk-search':'/api/rutube-search';
   const response=await fetch(endpoint+'?q='+encodeURIComponent(q));
