@@ -840,7 +840,7 @@ $('joinRoomModal').addEventListener('click',e=>{if(e.target===$('joinRoomModal')
 $('joinRoomBtn').onclick=async()=>{const code=$('joinCode').value.trim().toUpperCase();if(!code){$('joinRoomError').textContent='Введи код комнаты.';return}const b=$('joinRoomBtn');b.disabled=true;b.textContent='Подключаемся…';$('joinRoomError').textContent='';const {data,error}=await db.rpc('join_watch_room',{p_code:code});b.disabled=false;b.textContent='Войти';if(error){$('joinRoomError').textContent='Не удалось войти: '+error.message;return}$('joinRoomModal').classList.add('hidden');await openRoom(data,code)};
 $('backToRoomsBtn').onclick=()=>{$('roomWorkspace').classList.add('hidden');$('roomLobby').classList.remove('hidden');$('roomNotice').classList.add('hidden');};
 $('copyRoomCode').onclick=async()=>{try{await navigator.clipboard.writeText(activeRoomCode);roomSay('Код скопирован!')}catch(e){roomSay('Код комнаты: '+activeRoomCode)}};
-$('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
+$('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);$('videoUrl').value='';const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);roomSay(error?'Ошибка: '+error.message:'Видео открыто для всех участников комнаты.')};
 
 let queueBusy=false;
 async function refreshRoomVideoQueue(){
@@ -870,7 +870,8 @@ async function addVideoToQueue(){
  if(!/^https?:\/\//i.test(url))return roomSay('Вставь корректную ссылку http:// или https://');
  const {error}=await db.from('room_video_queue').insert({room_id:activeRoomId,video_url:url,added_by:currentUser.id});
  if(error)return roomSay('Не удалось добавить в очередь: '+error.message);
- roomSay('Видео добавлено в общую очередь.');
+ $('videoUrl').value='';
+ roomSay('Видео добавлено в общую очередь. Поле очищено — можешь добавить следующее.');
  await refreshRoomVideoQueue();
 }
 async function playNextQueuedVideo(auto=false){
