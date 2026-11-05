@@ -357,7 +357,7 @@ $('showLoginBtn').onclick=()=>{$('authSignupPanel').classList.add('hidden');$('a
 $('loginBtn').onclick=async()=>{
  const button=$('loginBtn'),email=$('loginEmail').value.trim().toLowerCase(),password=$('loginPass').value;
  if(!email)return say('loginMsg','Введи адрес электронной почты.');
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))return say('loginMsg','Проверь адрес электронной почты.');
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return say('loginMsg','Проверь адрес электронной почты.');
  if(!password)return say('loginMsg','Введи пароль.');
  button.disabled=true;button.textContent='Входим…';say('loginMsg','Проверяем данные…');
  try{
@@ -936,7 +936,7 @@ function renderRoomVideo(url,pos=0,playing=false){
   v.addEventListener('loadedmetadata',()=>{if(pos>0&&Math.abs(v.currentTime-pos)>2)v.currentTime=pos;if(playing)v.play().catch(()=>{})});
  }else{
   let externalHost='исходном сайте';
-  try{externalHost=new URL(url).hostname.replace(/^www\\./,'')}catch(e){}
+  try{externalHost=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
   const fallback=document.createElement('div');
   fallback.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:radial-gradient(circle at top,#272039,#08080d);';
   const title=document.createElement('strong');title.textContent='Внешнее видео открывается отдельно';
