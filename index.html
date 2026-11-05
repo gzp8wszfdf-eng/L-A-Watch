@@ -116,12 +116,13 @@ $('openDm').onclick=async()=>{const n=$('dmTo').value.trim().replace(/^@/,'');co
 $('sendDm').onclick=async()=>{const content=$('dmText').value.trim();if(!content||!activeFriend)return;const {error}=await db.from('direct_messages').insert({sender_id:currentUser.id,recipient_id:activeFriend.id,content});if(error)return alert(error.message);$('dmText').value='';await loadDm()};
 
 let activeRoomId=null,activeRoomCode=null,roomChannel=null,roomVideo=null,isApplyingRemote=false,lastSyncWrite=0;
+const playbackClientId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random());
 let youtubePlayer=null,youtubeReady=false,youtubeSuppress=false,youtubeSyncTimer=null;
 let ytLastTime=0,ytLastTick=0,ytLastHeartbeat=0,ytLastPlaying=false;
 window.onYouTubeIframeAPIReady=()=>{youtubeReady=true};
 function writeYoutubeState(playing,pos){
  if(!activeRoomId||youtubeSuppress)return;
- db.from('playback_state').upsert({room_id:activeRoomId,video_url:$('videoUrl').value.trim(),video_position:Math.max(0,Number(pos)||0),is_playing:!!playing,updated_at:new Date().toISOString()})
+ db.from('playback_state').upsert({room_id:activeRoomId,client_id:playbackClientId,video_url:$('videoUrl').value.trim(),video_position:Math.max(0,Number(pos)||0),is_playing:!!playing,updated_at:new Date().toISOString()})
  .then(({error})=>{if(error)roomSay('Ошибка синхронизации YouTube: '+error.message)});
  ytLastTime=Number(pos)||0;ytLastTick=Date.now();ytLastHeartbeat=ytLastTick;ytLastPlaying=!!playing;
 }
@@ -139,8 +140,7 @@ function startYoutubeSync(){
   const elapsed=(now-ytLastTick)/1000;
   const expected=ytLastTime+(ytLastPlaying?elapsed:0);
   const jumped=Math.abs(pos-expected)>1.25;
-  const heartbeat=playing&&now-ytLastHeartbeat>=2000;
-  if(jumped||heartbeat)writeYoutubeState(playing,pos);
+  if(jumped)writeYoutubeState(playing,pos);
   else{ytLastTime=pos;ytLastTick=now;ytLastPlaying=playing}
  },300);
 }
@@ -162,7 +162,7 @@ async function openRoom(id,code){
  if(s?.video_url){$('videoUrl').value=s.video_url;renderRoomVideo(s.video_url,s.video_position||0,s.is_playing)}
  roomChannel=db.channel('watch-room-'+id)
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room_id=eq.'+id},p=>{if(p.new)appendRoomMessage(p.new)})
- .on('postgres_changes',{event:'*',schema:'public',table:'playback_state',filter:'room_id=eq.'+id},p=>{const x=p.new;if(!x?.video_url)return;if($('videoUrl').value!==x.video_url){$('videoUrl').value=x.video_url;renderRoomVideo(x.video_url,x.video_position||0,x.is_playing)}else applyRemotePlayback(x)})
+ .on('postgres_changes',{event:'*',schema:'public',table:'playback_state',filter:'room_id=eq.'+id},p=>{const x=p.new;if(!x?.video_url||x.client_id===playbackClientId)return;if($('videoUrl').value!==x.video_url){$('videoUrl').value=x.video_url;renderRoomVideo(x.video_url,x.video_position||0,x.is_playing)}else applyRemotePlayback(x)})
  .subscribe();
 }
 function isDirectVideo(u){return /\.(mp4|webm|ogg)(\\?.*)?$/i.test(u)}
@@ -200,15 +200,15 @@ function renderRoomVideo(url,pos=0,playing=false){
   v.addEventListener('loadedmetadata',()=>{if(pos>0&&Math.abs(v.currentTime-pos)>2)v.currentTime=pos;if(playing)v.play().catch(()=>{})});
  }else{const frame=document.createElement('iframe');frame.src=url;frame.allow='autoplay; fullscreen; picture-in-picture';frame.allowFullscreen=true;screen.append(frame)}
 }
-async function writePlayback(playing){if(!activeRoomId||!roomVideo||isApplyingRemote)return;const now=Date.now();if(playing&&now-lastSyncWrite<1500)return;lastSyncWrite=now;
- const {error}=await db.from('playback_state').upsert({room_id:activeRoomId,video_url:$('videoUrl').value.trim(),video_position:roomVideo.currentTime||0,is_playing:playing,updated_at:new Date().toISOString()});if(error)roomSay('Ошибка синхронизации: '+error.message)}
+async function writePlayback(playing){if(!activeRoomId||!roomVideo||isApplyingRemote)return;const now=Date.now();if(playing&&now-lastSyncWrite<500)return;lastSyncWrite=now;
+ const {error}=await db.from('playback_state').upsert({room_id:activeRoomId,client_id:playbackClientId,video_url:$('videoUrl').value.trim(),video_position:roomVideo.currentTime||0,is_playing:playing,updated_at:new Date().toISOString()});if(error)roomSay('Ошибка синхронизации: '+error.message)}
 async function applyRemotePlayback(s){
  if(isApplyingRemote)return;
  if(youtubePlayer&&typeof youtubePlayer.getCurrentTime==='function'){
   youtubeSuppress=true;
   try{
    const target=Number(s.video_position)||0,current=youtubePlayer.getCurrentTime()||0;
-   if(Math.abs(current-target)>2)youtubePlayer.seekTo(target,true);
+   if(Math.abs(current-target)>0.75)youtubePlayer.seekTo(target,true);
    const state=youtubePlayer.getPlayerState();
    if(s.is_playing&&state!==YT.PlayerState.PLAYING)youtubePlayer.playVideo();
    if(!s.is_playing&&state===YT.PlayerState.PLAYING)youtubePlayer.pauseVideo();
@@ -217,13 +217,13 @@ async function applyRemotePlayback(s){
  }
  if(!roomVideo)return;
  isApplyingRemote=true;
- try{if(Math.abs(roomVideo.currentTime-(Number(s.video_position)||0))>2)roomVideo.currentTime=Number(s.video_position)||0;if(s.is_playing&&roomVideo.paused)await roomVideo.play().catch(()=>{});if(!s.is_playing&&!roomVideo.paused)roomVideo.pause()}
+ try{if(Math.abs(roomVideo.currentTime-(Number(s.video_position)||0))>0.75)roomVideo.currentTime=Number(s.video_position)||0;if(s.is_playing&&roomVideo.paused)await roomVideo.play().catch(()=>{});if(!s.is_playing&&!roomVideo.paused)roomVideo.pause()}
  finally{setTimeout(()=>{isApplyingRemote=false},300)}
 }
 $('createRoomBtn').onclick=async()=>{roomSay('Создаём комнату…');const {data,error}=await db.rpc('create_watch_room');if(error)return roomSay('Ошибка: '+error.message);const x=Array.isArray(data)?data[0]:data;if(!x?.room_id||!x?.room_code)return roomSay('Не удалось получить код комнаты.');await openRoom(x.room_id,x.room_code)};
 $('joinRoomBtn').onclick=async()=>{const code=$('joinCode').value.trim().toUpperCase();if(!code)return roomSay('Введи код комнаты.');roomSay('Подключаемся…');const {data,error}=await db.rpc('join_watch_room',{p_code:code});if(error)return roomSay('Не удалось войти: '+error.message);await openRoom(data,code)};
 $('copyRoomCode').onclick=async()=>{try{await navigator.clipboard.writeText(activeRoomCode);roomSay('Код скопирован!')}catch(e){roomSay('Код комнаты: '+activeRoomCode)}};
-$('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const {error}=await db.from('playback_state').upsert({room_id:activeRoomId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()});roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
+$('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const {error}=await db.from('playback_state').upsert({room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()});roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
 $('sendRoomMessage').onclick=async()=>{const content=$('roomChatText').value.trim();if(!content||!activeRoomId)return;const {data:p}=await db.from('profiles').select('username').eq('id',currentUser.id).maybeSingle();const {error}=await db.from('messages').insert({room_id:activeRoomId,username:p?.username||'user',content});if(error)roomSay('Ошибка отправки: '+error.message);else $('roomChatText').value=''};
 $('roomChatText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendRoomMessage').click()});
 $('leaveRoomBtn').onclick=async()=>{if(roomChannel)await db.removeChannel(roomChannel);roomChannel=null;activeRoomId=null;activeRoomCode=null;roomVideo=null;try{localStorage.removeItem('lawatch:lastRoom')}catch(e){};$('roomWorkspace').classList.add('hidden');$('roomChat').innerHTML='';roomSay('Ты покинул комнату.')};
