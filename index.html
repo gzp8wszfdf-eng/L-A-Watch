@@ -40,7 +40,7 @@
 <div id="roomWorkspace" class="hidden"><div class="row" style="justify-content:space-between"><strong>Код комнаты: <span id="roomCode" class="grad"></span></strong><button class="smallbtn" id="copyRoomCode">Копировать код</button></div>
 <p class="muted">Для синхронного воспроизведения используй прямую ссылку MP4/WebM. Сторонние сайты откроются во встроенном окне, но их плеер может не поддерживать синхронизацию.</p>
 <div class="row"><input id="videoUrl" class="field" placeholder="https://.../video.mp4"><button class="smallbtn" id="loadVideoBtn">Открыть видео</button></div>
-<div class="voice-panel"><div class="row" style="justify-content:space-between"><strong>🎙️ Голосовая комната</strong><span class="muted" id="voiceCount">0 участников</span></div><p class="muted">Общайся голосом с участниками этой комнаты.</p><div class="voice-actions"><button class="primary" id="voiceJoinBtn">🎙️ Подключить микрофон</button><button class="secondary" id="voiceMuteBtn" disabled>Выключить микрофон</button><button class="secondary" id="voiceLeaveBtn" disabled>Выйти из голоса</button></div><div class="voice-state" id="voiceStatus">Голосовой чат пока не подключён.</div><div class="voice-users" id="voiceUsers"></div></div>
+<div class="voice-panel"><div class="row" style="justify-content:space-between"><strong>🎙️ Голосовая комната</strong><span class="muted" id="voiceCount">0 участников</span></div><p class="muted">Нажми «Подключиться к голосу», чтобы включить микрофон. Без твоего нажатия микрофон не включается. При выходе из комнаты голос отключится.</p><div class="voice-actions"><button class="primary" id="voiceJoinBtn">🎙️ Подключиться к голосу</button><button class="secondary" id="voiceMuteBtn" disabled>Выключить микрофон</button><button class="secondary" id="voiceLeaveBtn" disabled>Выйти из голоса</button></div><div class="voice-state" id="voiceStatus">Голосовой чат пока не подключён.</div><div class="voice-users" id="voiceUsers"></div></div>
 <div class="screen" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
 <div class="dash" style="margin-top:14px"><div><h4>💬 Общий чат</h4><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></div>
 <div><h4>🔗 Подключение</h4><div class="notice">Отправь другу код комнаты. Он должен войти в свой аккаунт и ввести этот код.</div><button class="secondary" id="leaveRoomBtn">Покинуть комнату</button></div></div></div></div>
@@ -244,7 +244,9 @@ function toggleVoiceMute(){
 }
 async function leaveVoice(){
  if(!voiceActive)return;
-  voicePeers.forEach((_,id)=>voiceDropPeer(id));
+ const peerIds=[...voicePeers.keys()];
+ await Promise.all(peerIds.map(id=>voiceSend({to:id,type:'leave'})));
+ peerIds.forEach(id=>voiceDropPeer(id));
  if(localAudioStream)localAudioStream.getTracks().forEach(t=>t.stop());
  localAudioStream=null;voiceActive=false;voiceMuted=false;
  try{await roomChannel?.untrack()}catch(e){}
@@ -256,6 +258,7 @@ $('voiceJoinBtn').onclick=joinVoice;$('voiceMuteBtn').onclick=toggleVoiceMute;$(
 function roomSay(m){$('roomNotice').textContent=m}
 function appendRoomMessage(m){const box=$('roomChat'),el=document.createElement('div');el.className='msg';const b=document.createElement('b');b.textContent=m.username||'Пользователь';const t=document.createElement('span');t.textContent=m.content||'';el.append(b,t);box.append(el);box.scrollTop=box.scrollHeight}
 async function openRoom(id,code){
+ if(voiceActive)await leaveVoice();
  if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}
  activeRoomId=id;activeRoomCode=code;try{localStorage.setItem('lawatch:lastRoom',JSON.stringify({id,code,userId:currentUser?.id||null}))}catch(e){};$('roomCode').textContent=code;$('roomWorkspace').classList.remove('hidden');roomSay('Ты в комнате! Отправь код другу.');
  const {data:msgs,error}=await db.from('messages').select('*').eq('room_id',id).order('created_at').limit(100);$('roomChat').innerHTML='';
