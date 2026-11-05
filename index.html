@@ -905,7 +905,19 @@ function renderRoomVideo(url,pos=0,playing=false){
  }else if(isDirectVideo(url)){const v=document.createElement('video');v.controls=true;v.playsInline=true;v.src=url;screen.append(v);roomVideo=v;
   v.addEventListener('play',()=>writePlayback(true));v.addEventListener('pause',()=>{if(!v.ended)writePlayback(false)});v.addEventListener('seeked',()=>writePlayback(!v.paused));v.addEventListener('ended',()=>playNextQueuedVideo(true));
   v.addEventListener('loadedmetadata',()=>{if(pos>0&&Math.abs(v.currentTime-pos)>2)v.currentTime=pos;if(playing)v.play().catch(()=>{})});
- }else{const frame=document.createElement('iframe');frame.src=url;frame.allow='autoplay; fullscreen; picture-in-picture';frame.allowFullscreen=true;screen.append(frame)}
+ }else{
+  let externalHost='исходном сайте';
+  try{externalHost=new URL(url).hostname.replace(/^www\\./,'')}catch(e){}
+  const fallback=document.createElement('div');
+  fallback.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:radial-gradient(circle at top,#272039,#08080d);';
+  const title=document.createElement('strong');title.textContent='Этот сайт не разрешает встроенный просмотр';
+  title.style.cssText='font-size:16px;color:#fff';
+  const note=document.createElement('div');note.textContent='Открой видео на исходном сайте. После просмотра можно вернуться в комнату.';
+  note.style.cssText='max-width:360px;color:#aaa8ba;font-size:13px';
+  const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть на '+externalHost;
+  link.style.cssText='display:inline-flex;align-items:center;justify-content:center;padding:11px 18px;border-radius:12px;background:linear-gradient(135deg,#ff6fae,#9b86ff);color:#fff;text-decoration:none;font-weight:700';
+  fallback.append(title,note,link);screen.append(fallback);
+ }
 }
 async function uploadRoomMedia(file){
  if(!activeRoomId||!currentUser)return roomSay('Сначала войди в комнату.');
