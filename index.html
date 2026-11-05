@@ -244,8 +244,7 @@ function toggleVoiceMute(){
 }
 async function leaveVoice(){
  if(!voiceActive)return;
- voiceSend({type:'leave',to:'*'});
- voicePeers.forEach((_,id)=>voiceDropPeer(id));
+  voicePeers.forEach((_,id)=>voiceDropPeer(id));
  if(localAudioStream)localAudioStream.getTracks().forEach(t=>t.stop());
  localAudioStream=null;voiceActive=false;voiceMuted=false;
  try{await roomChannel?.untrack()}catch(e){}
