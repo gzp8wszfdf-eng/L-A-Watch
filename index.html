@@ -66,9 +66,9 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div class="screen room-video-screen" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
 <div class="room-video-controls"><input id="videoUrl" class="field" placeholder="Ссылка на видео MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button></div>
 <p class="muted room-help">Для лучшей синхронизации используй прямую ссылку MP4/WebM. У сторонних плееров синхронизация может не поддерживаться.</p>
-<section class="panel room-chat-panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>💬 Общий чат</strong><span class="muted" style="font-size:11px">Сообщения комнаты</span></div><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></section>
+<section class="panel room-chat-panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>💬 Общий чат</strong><span class="muted" style="font-size:11px">Сообщения комнаты</span></div><div class="row voice-chat-controls"><button class="secondary voice-toggle-btn" id="voiceJoinBtn" aria-label="Включить микрофон" title="Включить микрофон">🎙️ Микрофон выкл.</button><button class="secondary voice-toggle-btn" id="voiceOutputBtn" aria-label="Выключить звук голосового чата" title="Звук голосового чата включён">🔊 Звук вкл.</button><span class="muted voice-chat-status" id="voiceStatus">Голосовой чат выключен</span></div><div id="voiceCount" class="hidden">0 участников</div><div id="voiceUsers" class="hidden"></div><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></section>
 <details class="room-fold" id="roomQueueFold"><summary>📺 Очередь видео <span class="room-fold-hint">Следующие ролики</span></summary><div class="panel" id="videoQueuePanel"><div class="row" style="justify-content:space-between;align-items:center"><strong>Видео в очереди</strong><button class="primary" id="playNextQueueBtn" disabled>▶ Следующее</button></div><div id="videoQueueList" class="list muted" style="margin-top:10px">Очередь пока пуста.</div></div></details>
-<details class="room-fold"><summary>🎙️ Голосовая комната <span class="room-fold-hint" id="voiceCount">0 участников</span></summary><div class="voice-panel"><p class="muted">Микрофон включается только после твоего нажатия.</p><div class="voice-actions"><button class="primary" id="voiceJoinBtn">🎙️ Подключиться</button><button class="secondary" id="voiceMuteBtn" disabled>Выключить микрофон</button><button class="secondary" id="voiceOutputBtn" disabled>Выключить звук</button><button class="secondary" id="voiceLeaveBtn" disabled>Выйти</button></div><div class="voice-state" id="voiceStatus">Голосовой чат пока не подключён.</div><div class="voice-users" id="voiceUsers"></div></div></details>
+
 <details class="room-fold"><summary>👥 Позвать друзей <span class="room-fold-hint">Приглашения</span></summary><div class="panel"><div id="roomFriendInviteList" class="list muted">Загружаем друзей…</div></div></details>
 <div class="room-exit-row"><button class="secondary room-exit-btn" id="leaveRoomBtn" aria-label="Покинуть комнату" title="Покинуть комнату"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg></button></div>
 </div>
@@ -358,23 +358,23 @@ async function joinVoice(){
   voiceSay('Запрашиваем доступ к микрофону…');
   localAudioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
   voiceActive=true;voiceMuted=false;
-  $('voiceJoinBtn').disabled=true;$('voiceMuteBtn').disabled=false;$('voiceOutputBtn').disabled=false;$('voiceLeaveBtn').disabled=false;$('voiceMuteBtn').textContent='Выключить микрофон';$('voiceOutputBtn').textContent=voiceOutputMuted?'Включить звук':'Выключить звук';
+  $('voiceJoinBtn').textContent='🎙️ Микрофон вкл.';$('voiceJoinBtn').title='Выключить микрофон';$('voiceJoinBtn').setAttribute('aria-label','Выключить микрофон');$('voiceOutputBtn').textContent=voiceOutputMuted?'🔇 Звук выкл.':'🔊 Звук вкл.';
   await trackRoomViewer();
   voiceSay('Ты подключён к голосовой комнате. Разреши микрофон в Safari, если появится запрос.');
   renderVoiceUsers();
   voicePresence().forEach(p=>voiceOffer(p.userId).catch(e=>console.error(e)));
- }catch(e){voiceActive=false;if(localAudioStream)localAudioStream.getTracks().forEach(t=>t.stop());localAudioStream=null;$('voiceJoinBtn').disabled=false;$('voiceMuteBtn').disabled=true;$('voiceOutputBtn').disabled=true;$('voiceLeaveBtn').disabled=true;voiceSay('Не удалось включить микрофон: '+e.message)}
+ }catch(e){voiceActive=false;if(localAudioStream)localAudioStream.getTracks().forEach(t=>t.stop());localAudioStream=null;$('voiceJoinBtn').textContent='🎙️ Микрофон выкл.';$('voiceJoinBtn').title='Включить микрофон';$('voiceJoinBtn').setAttribute('aria-label','Включить микрофон');voiceSay('Не удалось включить микрофон: '+e.message)}
 }
 function toggleVoiceOutput(){
  voiceOutputMuted=!voiceOutputMuted;
  voiceAudioEls.forEach(audio=>audio.muted=voiceOutputMuted);
- $('voiceOutputBtn').textContent=voiceOutputMuted?'Включить звук':'Выключить звук';
+ $('voiceOutputBtn').textContent=voiceOutputMuted?'🔇 Звук выкл.':'🔊 Звук вкл.';$('voiceOutputBtn').title=voiceOutputMuted?'Включить звук голосового чата':'Выключить звук голосового чата';$('voiceOutputBtn').setAttribute('aria-label',voiceOutputMuted?'Включить звук голосового чата':'Выключить звук голосового чата');
  voiceSay(voiceOutputMuted?'Звук участников выключен только у тебя.':'Звук участников снова включён.');
 }
 function toggleVoiceMute(){
  if(!localAudioStream)return;
  voiceMuted=!voiceMuted;localAudioStream.getAudioTracks().forEach(t=>t.enabled=!voiceMuted);
- $('voiceMuteBtn').textContent=voiceMuted?'Включить микрофон':'Выключить микрофон';
+ $('voiceJoinBtn').textContent=voiceMuted?'🎙️ Микрофон выкл.':'🎙️ Микрофон вкл.';$('voiceJoinBtn').title=voiceMuted?'Включить микрофон':'Выключить микрофон';$('voiceJoinBtn').setAttribute('aria-label',voiceMuted?'Включить микрофон':'Выключить микрофон');
  voiceSay(voiceMuted?'Микрофон выключен.':'Микрофон включён.');renderVoiceUsers();
 }
 async function leaveVoice(){
@@ -385,10 +385,10 @@ async function leaveVoice(){
  if(localAudioStream)localAudioStream.getTracks().forEach(t=>t.stop());
  localAudioStream=null;voiceActive=false;voiceMuted=false;
  try{await trackRoomViewer()}catch(e){}
- $('voiceJoinBtn').disabled=false;$('voiceMuteBtn').disabled=true;$('voiceLeaveBtn').disabled=true;
+ $('voiceJoinBtn').textContent='🎙️ Микрофон выкл.';$('voiceJoinBtn').title='Включить микрофон';$('voiceJoinBtn').setAttribute('aria-label','Включить микрофон');
  voiceSay('Ты вышел из голосовой комнаты.');renderVoiceUsers();
 }
-$('voiceJoinBtn').onclick=joinVoice;$('voiceMuteBtn').onclick=toggleVoiceMute;$('voiceOutputBtn').onclick=toggleVoiceOutput;$('voiceLeaveBtn').onclick=leaveVoice;
+$('voiceJoinBtn').onclick=()=>voiceActive?toggleVoiceMute():joinVoice();$('voiceOutputBtn').onclick=toggleVoiceOutput;
 
 function roomSay(m){$('roomNotice').textContent=m;$('roomNotice').classList.remove('hidden')}
 const roomAvatarCache=new Map();
