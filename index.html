@@ -354,7 +354,25 @@ $('signupBtn').onclick=async()=>{
 };
 $('showSignupBtn').onclick=()=>{$('authLoginPanel').classList.add('hidden');$('authSignupPanel').classList.remove('hidden');$('signupMsg').textContent='';$('signupName').focus()};
 $('showLoginBtn').onclick=()=>{$('authSignupPanel').classList.add('hidden');$('authLoginPanel').classList.remove('hidden');$('loginMsg').textContent='';$('loginEmail').focus()};
-$('loginBtn').onclick=async()=>{say('loginMsg','Входим…');const {data,error}=await db.auth.signInWithPassword({email:$('loginEmail').value.trim().toLowerCase(),password:$('loginPass').value});if(error){const msg=/invalid login credentials/i.test(error.message||'')?'Почта или пароль неверны. Если аккаунт только что создан, сначала подтверди почту; если пароль забыт — нажми «Забыли пароль?».':error.message;return say('loginMsg','Ошибка: '+msg)}say('loginMsg','Успешный вход!');await showSession(data.session)};
+$('loginBtn').onclick=async()=>{
+ const button=$('loginBtn'),email=$('loginEmail').value.trim().toLowerCase(),password=$('loginPass').value;
+ if(!email)return say('loginMsg','Введи адрес электронной почты.');
+ if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))return say('loginMsg','Проверь адрес электронной почты.');
+ if(!password)return say('loginMsg','Введи пароль.');
+ button.disabled=true;button.textContent='Входим…';say('loginMsg','Проверяем данные…');
+ try{
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error){
+   const raw=(error.code||'')+' '+(error.message||'');
+   if(/invalid login credentials|invalid_credentials/i.test(raw))return say('loginMsg','Неправильный пароль или почта. Проверь пароль и адрес электронной почты. Если аккаунт создан недавно, сначала подтверди почту.');
+   if(/email not confirmed/i.test(raw))return say('loginMsg','Почта ещё не подтверждена. Открой письмо от L&A Watch или нажми «Не пришло письмо подтверждения?».');
+   if(/too many requests|rate limit/i.test(raw))return say('loginMsg','Слишком много попыток. Подожди немного и попробуй снова.');
+   return say('loginMsg','Не удалось войти: '+error.message);
+  }
+  say('loginMsg','Успешный вход!');await showSession(data.session);
+ }catch(e){say('loginMsg','Ошибка входа. Проверь интернет и попробуй ещё раз.')}
+ finally{button.disabled=false;button.textContent='Войти'}
+};
 $('forgotPasswordBtn').onclick=async()=>{const email=$('loginEmail').value.trim().toLowerCase();if(!email)return say('loginMsg','Сначала введи адрес электронной почты.');const b=$('forgotPasswordBtn');b.disabled=true;b.textContent='Отправляем…';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});b.disabled=false;b.textContent='Забыли пароль?';if(error)return say('loginMsg','Не удалось отправить письмо: '+error.message);say('loginMsg','Если для этой почты есть аккаунт, письмо для смены пароля отправлено. Проверь «Входящие» и «Спам».')};
 $('resendConfirmBtn').onclick=async()=>{const email=$('loginEmail').value.trim().toLowerCase();if(!email)return say('loginMsg','Сначала введи адрес электронной почты.');const b=$('resendConfirmBtn');b.disabled=true;b.textContent='Отправляем…';const {error}=await db.auth.resend({type:'signup',email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});b.disabled=false;b.textContent='Не пришло письмо подтверждения?';if(error)return say('loginMsg','Не удалось отправить подтверждение: '+error.message);say('loginMsg','Запрос на повторное письмо отправлен. Проверь «Входящие» и «Спам».')};
 async function signInWithGoogle(buttonId,messageId){const button=$(buttonId);button.disabled=true;button.textContent='Переходим к Google…';say(messageId,'Открываем безопасный вход через Google…');const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+window.location.pathname}});if(error){button.disabled=false;button.textContent='G Продолжить с Google';say(messageId,'Не удалось войти через Google: '+error.message)}}
