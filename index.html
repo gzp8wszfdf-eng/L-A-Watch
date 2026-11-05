@@ -657,7 +657,7 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
   const btn=$('youtubeSearchBtn');btn.disabled=true;status.textContent=mode==='channels'?'Ищем каналы…':mode==='channelVideos'?'Загружаем последние видео…':'Ищем видео на YouTube…';box.innerHTML='';
   try{const params=new URLSearchParams();if(q)params.set('q',q);params.set('mode',mode);if(channelId)params.set('channelId',channelId);const res=await fetch('/api/youtube-search?'+params.toString());const data=await res.json();if(!res.ok)throw new Error(data?.error?.message||data?.error||'Ошибка YouTube API');const items=data.items||[];if(!items.length){status.textContent='Ничего не найдено.';return}status.textContent=mode==='channels'?'Найдено каналов: '+items.length:mode==='channelVideos'?'Последние видео канала: '+items.length:'Найдено видео: '+items.length;if(mode==='channelVideos')$('youtubeChannelBack').classList.remove('hidden');
    items.forEach(item=>{const sn=item.snippet||{};if(mode==='channels'){const id=item.id?.channelId;if(!id)return;const card=document.createElement('button');card.type='button';card.className='result youtube-channel-result';const img=document.createElement('img');img.src=sn.thumbnails?.medium?.url||sn.thumbnails?.default?.url||'';img.alt='';img.style.cssText='width:76px;height:76px;object-fit:cover;border-radius:50%;flex:none;background:#272727';const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';const title=document.createElement('strong');title.textContent=sn.title||'Канал YouTube';title.style.cssText='display:block;font-size:14px;line-height:1.35';const desc=document.createElement('small');desc.textContent=(sn.description||'Канал YouTube')+' · Смотреть последние видео';desc.style.cssText='display:block;color:#aaa;margin-top:5px';copy.append(title,desc);card.append(img,copy);card.onclick=()=>openYoutubeChannel(id,sn.title||'Канал');box.append(card);return}
-    const id=item.id?.videoId;if(!id)return;const card=document.createElement('button');card.type='button';card.className='result';const img=document.createElement('img');img.src=sn.thumbnails?.medium?.url||sn.thumbnails?.default?.url||'';img.alt='';img.style.cssText='width:min(42%,180px);aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none;background:#050509';const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';const title=document.createElement('strong');title.textContent=sn.title||'Видео YouTube';title.style.cssText='display:block;font-size:14px;line-height:1.35';const channel=document.createElement('small');channel.textContent=sn.channelTitle||'YouTube';channel.style.cssText='display:block;color:#aaa;margin-top:5px';copy.append(title,channel);card.append(img,copy);card.onclick=()=>playYouTubeFromCatalog(id);box.append(card)
+    const id=item.id?.videoId;if(!id)return;const url='https://www.youtube.com/watch?v='+id;const card=document.createElement('div');card.className='result';const img=document.createElement('img');img.src=sn.thumbnails?.medium?.url||sn.thumbnails?.default?.url||'';img.alt='';img.style.cssText='width:min(42%,180px);aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none;background:#050509';const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';const title=document.createElement('strong');title.textContent=sn.title||'Видео YouTube';title.style.cssText='display:block;font-size:14px;line-height:1.35';const channel=document.createElement('small');channel.textContent=sn.channelTitle||'YouTube';channel.style.cssText='display:block;color:#aaa;margin-top:5px';copy.append(title,channel);card.append(img,copy);const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;width:100%;margin-top:8px';const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='smallbtn';openBtn.textContent='▶ Открыть';openBtn.onclick=()=>playYouTubeFromCatalog(id);const queueBtn=document.createElement('button');queueBtn.type='button';queueBtn.className='secondary';queueBtn.textContent='＋ В очередь';queueBtn.onclick=()=>addCatalogVideoToQueue(url,'YouTube');actions.append(openBtn,queueBtn);card.append(actions);box.append(card)
    })
   }catch(e){status.textContent='Не удалось загрузить: '+e.message}finally{btn.disabled=false}
  }
@@ -731,20 +731,29 @@ async function searchActiveVideoProvider(){
   status.textContent='Найдено видео '+(activeCatalogProvider==='vk'?'VK':'RUTUBE')+': '+items.length;
   items.forEach(item=>{
    if(!item.url)return;
-   const card=document.createElement('button');card.type='button';card.className='result';card.style.textAlign='left';card.style.width='100%';
+   const card=document.createElement('div');card.className='result';card.style.textAlign='left';card.style.width='100%';
    if(item.thumbnail){const img=document.createElement('img');img.src=item.thumbnail;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';img.style.cssText='width:min(42%,180px);aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none;background:#050509';card.append(img)}
    const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';
    const title=document.createElement('strong');title.textContent=item.title||('Видео '+(activeCatalogProvider==='vk'?'VK':'RUTUBE'));title.style.cssText='display:block;font-size:14px;line-height:1.35';
    const author=document.createElement('small');author.textContent=item.author||(activeCatalogProvider==='vk'?'VK Видео':'RUTUBE');author.style.cssText='display:block;color:#aaa;margin-top:5px';
-   copy.append(title,author);card.append(copy);card.onclick=()=>playExternalCatalogVideo(item.url,activeCatalogProvider==='vk'?'VK Видео':'RUTUBE');box.append(card);
+   copy.append(title,author);card.append(copy);const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;width:100%;margin-top:8px';const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='smallbtn';openBtn.textContent='▶ Открыть';openBtn.onclick=()=>playExternalCatalogVideo(item.url,'RUTUBE');const queueBtn=document.createElement('button');queueBtn.type='button';queueBtn.className='secondary';queueBtn.textContent='＋ В очередь';queueBtn.onclick=()=>addCatalogVideoToQueue(item.url,'RUTUBE');actions.append(openBtn,queueBtn);card.append(actions);box.append(card);
   });
  }catch(error){status.textContent='Не удалось выполнить поиск: '+error.message}
  finally{btn.disabled=false}
 }
+async function addCatalogVideoToQueue(url,platform){
+ if(isGuest())return roomSay('Добавлять видео в очередь могут только зарегистрированные пользователи.');
+ if(!activeRoomId)return roomSay('Сначала войди в комнату.');
+ const {error}=await db.from('room_video_queue').insert({room_id:activeRoomId,video_url:url,added_by:currentUser.id});
+ if(error)return roomSay('Не удалось добавить в очередь: '+error.message);
+ $('videoUrl').value='';
+ roomSay(platform+' добавлено в общую очередь. Поле очищено.');
+ await refreshRoomVideoQueue();
+}
 async function playExternalCatalogVideo(url,platform){
  if(!activeRoomId)return roomSay('Сначала войди в комнату.');
  $('videoUrl').value=url;$('youtubeCatalog').classList.add('hidden');$('videoScreen').classList.remove('hidden');
- renderRoomVideo(url,0,true);
+ renderRoomVideo(url,0,true);$('videoUrl').value='';
  const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString()};
  broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);
  roomSay(error?'Не удалось отправить видео участникам: '+error.message:platform+' запускается для всех участников комнаты.');
@@ -754,7 +763,7 @@ async function playExternalCatalogVideo(url,platform){
  if(!activeRoomId)return;
  const url='https://www.youtube.com/watch?v='+id;$('videoUrl').value=url;
  $('youtubeCatalog').classList.add('hidden');$('videoScreen').classList.remove('hidden');
- renderRoomVideo(url,0,true);
+ renderRoomVideo(url,0,true);$('videoUrl').value='';
  const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString()};
  broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);
  roomSay(error?'Не удалось отправить видео участникам: '+error.message:'Запускаем видео для всех участников комнаты!');
