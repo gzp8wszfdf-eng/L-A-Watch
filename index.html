@@ -36,13 +36,27 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div class="chat-overlay hidden" id="dmPanel"><section class="chat-window"><div class="chat-head"><button class="smallbtn" id="backFriends">← Назад</button><button class="chat-person" id="dmProfileBtn" aria-label="Открыть профиль друга"><span id="dmAvatar" class="friend-avatar">👤</span><span><strong id="dmTitle">Переписка</strong><small id="dmUsername"></small></span></button><button class="smallbtn" id="friendMenuBtn" aria-label="Действия с другом">⋯</button></div><div id="friendMenu" class="friend-menu hidden"><button id="blockFriendBtn" class="secondary danger">Заблокировать</button><button id="removeFriendBtn" class="secondary">Удалить из друзей</button></div><div id="dmEmpty" class="notice">Пока нет сообщений. Напиши первым ❤️</div><div class="chatbox" id="dmMessages"></div><div class="row chat-composer" id="dmComposer"><input id="dmText" class="field" placeholder="Сообщение…"><button class="smallbtn" id="sendDm">➤</button></div></section></div><div class="profile-overlay hidden" id="friendProfileOverlay"><section class="friend-profile-window"><div class="row" style="justify-content:space-between"><strong>Профиль друга</strong><button class="smallbtn" id="closeFriendProfile">← Назад</button></div><div id="friendProfileContent"></div></section></div>
 </div>
 <div class="panel" id="roomPanel">
-<h3>🍿 Комнаты совместного просмотра</h3><p class="muted">Открытые комнаты видны всем, закрытые — только по приглашению или коду.</p>
-<div class="row"><input id="newRoomTitle" class="field" maxlength="60" placeholder="Название комнаты"><select id="roomVisibility" class="field" style="max-width:180px"><option value="public">🌍 Открытая</option><option value="private" selected>🔒 Закрытая</option></select><button class="primary" id="createRoomBtn">＋ Создать комнату</button></div>
-<div class="row"><input id="joinCode" class="field" placeholder="Код комнаты" maxlength="8"><button class="smallbtn" id="joinRoomBtn">Войти по коду</button></div>
-<div><h4>🌍 Открытые комнаты</h4><div id="publicRooms" class="list muted">Загружаем комнаты…</div></div>
+<div id="roomLobby">
+<h3>🍿 Комнаты</h3>
+<p class="muted">Создай свою комнату или присоединись к друзьям.</p>
+<div class="row room-entry-actions" style="gap:10px">
+<button class="primary" id="createRoomBtn" style="flex:1">＋ Создать комнату</button>
+<button class="secondary" id="openJoinRoomBtn" style="flex:1">↗ Войти в комнату</button>
+</div>
+<div id="joinRoomModal" class="hidden" style="position:fixed;inset:0;z-index:10000;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px">
+<section class="panel" style="width:100%;max-width:380px;margin:0">
+<div class="row" style="justify-content:space-between"><strong>Войти в комнату</strong><button class="secondary" id="closeJoinRoomModal">✕</button></div>
+<p class="muted">Введи код, который тебе отправили.</p>
+<input id="joinCode" class="field" placeholder="Код комнаты" maxlength="8" autocomplete="off">
+<div class="row" style="margin-top:12px"><button class="primary" id="joinRoomBtn" style="flex:1">Войти</button></div>
+<div class="muted" id="joinRoomError"></div>
+</section>
+</div>
+<div style="margin-top:22px"><h4>🌍 Открытые комнаты</h4><div id="publicRooms" class="list muted">Загружаем комнаты…</div></div>
+</div>
 <div id="roomNotice" class="notice">Комната ещё не открыта.</div>
 <div id="roomInvitePopup" class="hidden" style="position:fixed;z-index:9999;left:16px;right:16px;top:18px;max-width:520px;margin:auto;padding:18px;border-radius:16px;background:var(--panel,#171923);border:1px solid var(--accent,#8b5cf6);box-shadow:0 12px 40px #0008"><strong id="roomInviteText">Приглашение в комнату</strong><div class="row" style="margin-top:12px"><button class="primary" id="acceptRoomInvite">Принять</button><button class="secondary" id="declineRoomInvite">Отклонить</button></div></div>
-<div id="roomWorkspace" class="hidden"><div class="row" style="justify-content:space-between"><strong>Код комнаты: <span id="roomCode" class="grad"></span></strong><button class="smallbtn" id="copyRoomCode">Копировать код</button></div><div class="panel" style="margin-top:12px"><h4>👥 Позвать друзей</h4><div id="roomFriendInviteList" class="list muted">Загружаем друзей…</div></div>
+<div id="roomWorkspace" class="hidden"><div class="row" style="justify-content:space-between"><button class="secondary" id="backToRoomsBtn">← К комнатам</button><strong>Код комнаты: <span id="roomCode" class="grad"></span></strong><button class="smallbtn" id="copyRoomCode">Копировать код</button></div><div class="panel" style="margin-top:12px"><h4>👥 Позвать друзей</h4><div id="roomFriendInviteList" class="list muted">Загружаем друзей…</div></div>
 <p class="muted">Для синхронного воспроизведения используй прямую ссылку MP4/WebM. Сторонние сайты откроются во встроенном окне, но их плеер может не поддерживать синхронизацию.</p>
 <div class="row"><input id="videoUrl" class="field" placeholder="https://.../video.mp4"><button class="smallbtn" id="loadVideoBtn">Открыть видео</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button></div>
 <div class="panel" id="videoQueuePanel" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center"><div><strong>📺 Очередь видео</strong><div class="muted" style="font-size:12px">Добавляй ролики — они будут доступны всем в комнате</div></div><button class="primary" id="playNextQueueBtn" disabled>▶ Следующее</button></div><div id="videoQueueList" class="list muted" style="margin-top:10px">Очередь пока пуста.</div></div>
@@ -302,7 +316,7 @@ function appendRoomMessage(m){const box=$('roomChat'),el=document.createElement(
 async function openRoom(id,code){
  if(voiceActive)await leaveVoice();
  if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}
- activeRoomId=id;activeRoomCode=code;try{localStorage.setItem('lawatch:lastRoom',JSON.stringify({id,code,userId:currentUser?.id||null}))}catch(e){};const {data:roomInfo}=await db.from('rooms').select('visibility').eq('id',id).maybeSingle();$('roomCode').textContent=code;$('roomCode').parentElement.parentElement.classList.toggle('hidden',roomInfo?.visibility==='public');$('roomWorkspace').classList.remove('hidden');roomSay(roomInfo?.visibility==='public'?'Ты в открытой комнате!':'Ты в закрытой комнате! Отправь код другу.');await refreshRoomFriendInvites();
+ activeRoomId=id;activeRoomCode=code;$('roomLobby').classList.add('hidden');$('roomWorkspace').classList.remove('hidden');try{localStorage.setItem('lawatch:lastRoom',JSON.stringify({id,code,userId:currentUser?.id||null}))}catch(e){};const {data:roomInfo}=await db.from('rooms').select('visibility').eq('id',id).maybeSingle();$('roomCode').textContent=code;$('roomCode').parentElement.parentElement.classList.toggle('hidden',roomInfo?.visibility==='public');$('roomWorkspace').classList.remove('hidden');roomSay(roomInfo?.visibility==='public'?'Ты в открытой комнате!':'Ты в закрытой комнате! Отправь код другу.');await refreshRoomFriendInvites();
  const {data:msgs,error}=await db.from('messages').select('*').eq('room_id',id).order('created_at').limit(100);$('roomChat').innerHTML='';
  if(error)roomSay('Комната открыта, ошибка чата: '+error.message);else(msgs||[]).forEach(appendRoomMessage);
  const {data:s}=await db.from('playback_state').select('*').eq('room_id',id).maybeSingle();
@@ -409,8 +423,12 @@ async function applyRemotePlayback(s){
  try{if(Math.abs(roomVideo.currentTime-(Number(s.video_position)||0))>0.75)roomVideo.currentTime=Number(s.video_position)||0;if(s.is_playing&&roomVideo.paused)await roomVideo.play().catch(()=>{});if(!s.is_playing&&!roomVideo.paused)roomVideo.pause()}
  finally{setTimeout(()=>{isApplyingRemote=false},300)}
 }
-$('createRoomBtn').onclick=async()=>{roomSay('Создаём комнату…');const visibility=$('roomVisibility').value,title=$('newRoomTitle').value.trim()||'Комната просмотра';const {data,error}=await db.rpc('create_watch_room',{p_visibility:visibility,p_title:title});if(error)return roomSay('Ошибка: '+error.message);const x=Array.isArray(data)?data[0]:data;if(!x?.room_id||!x?.room_code)return roomSay('Не удалось получить код комнаты.');await openRoom(x.room_id,x.room_code);await refreshPublicRooms()};
-$('joinRoomBtn').onclick=async()=>{const code=$('joinCode').value.trim().toUpperCase();if(!code)return roomSay('Введи код комнаты.');roomSay('Подключаемся…');const {data,error}=await db.rpc('join_watch_room',{p_code:code});if(error)return roomSay('Не удалось войти: '+error.message);await openRoom(data,code)};
+$('createRoomBtn').onclick=async()=>{const b=$('createRoomBtn');b.disabled=true;b.textContent='Создаём…';const {data,error}=await db.rpc('create_watch_room',{p_visibility:'private',p_title:'Комната просмотра'});b.disabled=false;b.textContent='＋ Создать комнату';if(error){roomSay('Ошибка: '+error.message);return}const x=Array.isArray(data)?data[0]:data;if(!x?.room_id||!x?.room_code){roomSay('Не удалось получить код комнаты.');return}await openRoom(x.room_id,x.room_code);await refreshPublicRooms()};
+$('openJoinRoomBtn').onclick=()=>{$('joinRoomError').textContent='';$('joinRoomModal').classList.remove('hidden');$('joinCode').focus()};
+$('closeJoinRoomModal').onclick=()=> $('joinRoomModal').classList.add('hidden');
+$('joinRoomModal').addEventListener('click',e=>{if(e.target===$('joinRoomModal'))$('joinRoomModal').classList.add('hidden')});
+$('joinRoomBtn').onclick=async()=>{const code=$('joinCode').value.trim().toUpperCase();if(!code){$('joinRoomError').textContent='Введи код комнаты.';return}const b=$('joinRoomBtn');b.disabled=true;b.textContent='Подключаемся…';$('joinRoomError').textContent='';const {data,error}=await db.rpc('join_watch_room',{p_code:code});b.disabled=false;b.textContent='Войти';if(error){$('joinRoomError').textContent='Не удалось войти: '+error.message;return}$('joinRoomModal').classList.add('hidden');await openRoom(data,code)};
+$('backToRoomsBtn').onclick=()=>{$('roomWorkspace').classList.add('hidden');$('roomLobby').classList.remove('hidden');};
 $('copyRoomCode').onclick=async()=>{try{await navigator.clipboard.writeText(activeRoomCode);roomSay('Код скопирован!')}catch(e){roomSay('Код комнаты: '+activeRoomCode)}};
 $('loadVideoBtn').onclick=async()=>{const url=$('videoUrl').value.trim();if(!/^https?:\/\//i.test(url))return roomSay('Вставь ссылку, начинающуюся с http:// или https://');if(!activeRoomId)return;renderRoomVideo(url);const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:false,updated_at:new Date().toISOString()};broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);roomSay(error?'Ошибка: '+error.message:'Ссылка отправлена участникам комнаты.')};
 
