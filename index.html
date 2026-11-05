@@ -878,10 +878,8 @@ function renderRoomVideo(url,pos=0,playing=false){
   });
   return;
  }
- // Never embed third-party video pages: providers may inject CAPTCHA or anti-bot challenges.
- // Only direct media files and files uploaded to our own storage play inside L&A Watch.
- const ytId=null;
- const externalEmbedUrl=null;
+ const ytId=getYouTubeId(url);
+ const externalEmbedUrl=getExternalVideoEmbedUrl(url);
  if(ytId){
   const frame=document.createElement('div');frame.id='youtube-player-frame';frame.style.cssText='position:absolute;inset:0;width:100%;height:100%';screen.append(frame);
   const createPlayer=()=>{
