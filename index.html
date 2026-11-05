@@ -82,7 +82,7 @@ const $=id=>document.getElementById(id);let currentUser=null,activeFriend=null,f
 // Keep friend chat and profile overlays at the document root, outside the dashboard grid.
 document.body.append($('dmPanel'),$('friendProfileOverlay'));$('dmPanel').classList.add('chat-page');
 const appTabPanels={friends:['friendSearchPanel','requestsPanel','friendsPanel'],room:['roomPanel']};
-function setAppTab(tab){for(const id of ['friendSearchPanel','requestsPanel','friendsPanel','roomPanel'])$(id)?.classList.toggle('hidden',!appTabPanels[tab]?.includes(id));$('dmPanel').classList.toggle('hidden',tab!=='friends'||!friendChatOpen);if(tab!=='friends')$('friendMenu').classList.add('hidden');document.querySelectorAll('[data-app-tab]').forEach(b=>b.classList.toggle('active',b.dataset.appTab===tab));}
+function setAppTab(tab){if(!appTabPanels[tab])tab='friends';try{localStorage.setItem('lawatch:lastAppTab',tab)}catch(e){}for(const id of ['friendSearchPanel','requestsPanel','friendsPanel','roomPanel'])$(id)?.classList.toggle('hidden',!appTabPanels[tab]?.includes(id));$('dmPanel').classList.toggle('hidden',tab!=='friends'||!friendChatOpen);if(tab!=='friends')$('friendMenu').classList.add('hidden');document.querySelectorAll('[data-app-tab]').forEach(b=>b.classList.toggle('active',b.dataset.appTab===tab));}
 function openFriendChat(p){activeFriend=p;friendChatOpen=true;$('dmTitle').textContent=safeName(p);$('dmUsername').textContent='@'+(p.username||'user');const av=$('dmAvatar');if(p.avatar_url){av.outerHTML='<img id="dmAvatar" class="friend-avatar" alt="" src="'+String(p.avatar_url).replace(/&/g,'&amp;').replace(/\"/g,'&quot;')+'">'}else{av.outerHTML='<span id="dmAvatar" class="friend-avatar">'+(safeName(p).trim()[0]||'👤').toUpperCase()+'</span>'}$('friendMenu').classList.add('hidden');$('dmMessages').innerHTML='';$('dmEmpty').textContent='Пока нет сообщений. Напиши первым ❤️';$('dmEmpty').classList.remove('hidden');$('dmPanel').classList.remove('hidden');document.body.classList.add('chat-open');document.body.style.overflow='hidden';loadDm();}
 document.querySelectorAll('[data-app-tab]').forEach(b=>b.addEventListener('click',()=>setAppTab(b.dataset.appTab)));
 function say(id,msg){$(id).textContent=msg}
@@ -120,7 +120,7 @@ let roomRestoreTask=null;
 async function showSession(session){
  currentUser=session?.user||null;
  $('hero').classList.toggle('hidden',!!currentUser);
- if(currentUser)setAppTab('friends');
+ if(currentUser){let savedTab='friends';try{const tab=localStorage.getItem('lawatch:lastAppTab');if(tab==='room'||tab==='friends')savedTab=tab}catch(e){}setAppTab(savedTab);}
  $('authArea').classList.toggle('hidden',!!currentUser);$('appArea').classList.toggle('hidden',!currentUser);
  $('status').textContent=currentUser?'● аккаунт подключён':'● не выполнен вход'; $('settingsBtn').classList.toggle('hidden',!currentUser);
  if(!currentUser){await stopOnlinePresence();friendChatOpen=false;activeFriend=null;$('globalMsg').classList.remove('hidden');await leaveVoice();activeRoomId=null;activeRoomCode=null;if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}return}
