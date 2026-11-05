@@ -133,7 +133,7 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div class="room-video-controls"><button class="youtube-launch-btn" id="openYoutubePickerBtn" type="button" aria-label="Открыть YouTube" title="YouTube"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg></button><button class="youtube-launch-btn" id="openGalleryPickerBtn" type="button" aria-label="Открыть галерею" title="Галерея"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#8f7cff"/><circle cx="8" cy="8" r="2" fill="#fff"/><path d="M3 18l6-7 4 4 3-3 5 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="videoUrl" class="field" placeholder="Ссылка на видео MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button><button class="smallbtn queue-action-btn" id="playNextQueueBtn" disabled aria-label="Следующее видео" title="Включить следующее видео">⏭</button><button class="smallbtn queue-action-btn" id="toggleVideoQueueBtn" aria-label="Показать очередь" title="Видео в очереди">☷</button></div>
 
 <p class="muted room-help">YouTube и файлы из галереи запускаются для всех участников комнаты. Для загрузки из галереи нужен аккаунт; лимит файла — 50 МБ.</p>
-<section class="panel room-chat-panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>💬 Общий чат</strong><span class="muted" style="font-size:11px">Сообщения комнаты</span></div><div class="row voice-chat-controls"><button class="secondary voice-toggle-btn" id="voiceJoinBtn" aria-label="Включить микрофон" title="Включить микрофон">🎙️ Микрофон выкл.</button><button class="secondary voice-toggle-btn" id="voiceOutputBtn" aria-label="Выключить звук голосового чата" title="Звук голосового чата включён">🔊 Звук вкл.</button><span class="muted voice-chat-status" id="voiceStatus">Голосовой чат выключен</span></div><div id="voiceCount" class="hidden">0 участников</div><div id="voiceUsers" class="hidden"></div><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></section>
+<section class="panel room-chat-panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>💬 Общий чат</strong><span class="muted" style="font-size:11px">Сообщения комнаты</span></div><div class="row voice-chat-controls"><button class="secondary voice-toggle-btn" id="voiceJoinBtn" aria-label="Включить микрофон" title="Включить микрофон">🎙️ Микрофон выкл.</button><button class="secondary voice-toggle-btn" id="voiceOutputBtn" aria-label="Включить звук голосового чата" title="Звук голосового чата выключен">🔇 Звук выкл.</button><span class="muted voice-chat-status" id="voiceStatus">Голосовой чат выключен</span></div><div id="voiceCount" class="hidden">0 участников</div><div id="voiceUsers" class="hidden"></div><div id="roomChat" class="chatbox"></div><div class="row"><input id="roomChatText" class="field" placeholder="Написать сообщение…"><button class="smallbtn" id="sendRoomMessage">➤</button></div></section>
 
 
 
@@ -337,7 +337,7 @@ function youtubeStateChanged(event){
  }
 }
 
-let voiceActive=false,voiceMuted=false,voiceOutputMuted=false,localAudioStream=null;
+let voiceActive=false,voiceMuted=false,voiceOutputMuted=true,localAudioStream=null;
 const voicePeers=new Map();
 let voiceAudioEls=[];
 function voiceSay(m){if($('voiceStatus'))$('voiceStatus').textContent=m}
@@ -430,7 +430,7 @@ async function joinVoice(){
 }
 function toggleVoiceOutput(){
  voiceOutputMuted=!voiceOutputMuted;
- voiceAudioEls.forEach(audio=>audio.muted=voiceOutputMuted);
+ voiceAudioEls.forEach(audio=>{audio.muted=voiceOutputMuted;if(!voiceOutputMuted)audio.play().catch(()=>voiceSay('Не удалось включить звук. Проверь громкость и режим без звука устройства.'))});
  $('voiceOutputBtn').textContent=voiceOutputMuted?'🔇 Звук выкл.':'🔊 Звук вкл.';$('voiceOutputBtn').title=voiceOutputMuted?'Включить звук голосового чата':'Выключить звук голосового чата';$('voiceOutputBtn').setAttribute('aria-label',voiceOutputMuted?'Включить звук голосового чата':'Выключить звук голосового чата');
  voiceSay(voiceOutputMuted?'Звук участников выключен только у тебя.':'Звук участников снова включён.');
 }
