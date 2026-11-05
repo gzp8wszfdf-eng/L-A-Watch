@@ -336,13 +336,20 @@ $('signupBtn').onclick=async()=>{
  if(!email||password.length<6)return say('signupMsg','Укажи почту и пароль минимум из 6 символов.');
  say('signupMsg','Создаём аккаунт…');
  const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname, data:{username,display_name:display}}});
- if(error)return say('signupMsg','Ошибка: '+error.message);
+ if(error){
+  if(/already registered|already exists|user already/i.test(error.message||'')){
+   $('loginEmail').value=email;$('authSignupPanel').classList.add('hidden');$('authLoginPanel').classList.remove('hidden');
+   say('loginMsg','Этот аккаунт уже зарегистрирован. Войди в него по почте и паролю или восстанови пароль.');
+   $('loginEmail').focus();return;
+  }
+  return say('signupMsg','Ошибка: '+error.message);
+ }
  if(data.session){say('signupMsg','Аккаунт создан! Заходим…');await showSession(data.session)}
  else{say('signupMsg','Аккаунт создан. Для первого входа подтверди адрес электронной почты по ссылке из письма, затем вернись сюда и войди.')}
 };
 $('showSignupBtn').onclick=()=>{$('authLoginPanel').classList.add('hidden');$('authSignupPanel').classList.remove('hidden');$('signupMsg').textContent='';$('signupName').focus()};
 $('showLoginBtn').onclick=()=>{$('authSignupPanel').classList.add('hidden');$('authLoginPanel').classList.remove('hidden');$('loginMsg').textContent='';$('loginEmail').focus()};
-$('loginBtn').onclick=async()=>{say('loginMsg','Входим…');const {data,error}=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});if(error)return say('loginMsg','Ошибка: '+error.message);say('loginMsg','Успешный вход!');await showSession(data.session)};
+$('loginBtn').onclick=async()=>{say('loginMsg','Входим…');const {data,error}=await db.auth.signInWithPassword({email:$('loginEmail').value.trim().toLowerCase(),password:$('loginPass').value});if(error){const msg=/invalid login credentials/i.test(error.message||'')?'Почта или пароль неверны. Если аккаунт только что создан, сначала подтверди почту; если пароль забыт — нажми «Забыли пароль?».':error.message;return say('loginMsg','Ошибка: '+msg)}say('loginMsg','Успешный вход!');await showSession(data.session)};
 $('forgotPasswordBtn').onclick=async()=>{const email=$('loginEmail').value.trim();if(!email)return say('loginMsg','Сначала введи адрес электронной почты.');const b=$('forgotPasswordBtn');b.disabled=true;b.textContent='Отправляем…';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});b.disabled=false;b.textContent='Забыли пароль?';if(error)return say('loginMsg','Не удалось отправить письмо: '+error.message);say('loginMsg','Если для этой почты есть аккаунт, письмо для смены пароля отправлено. Проверь «Входящие» и «Спам».')};
 $('resendConfirmBtn').onclick=async()=>{const email=$('loginEmail').value.trim();if(!email)return say('loginMsg','Сначала введи адрес электронной почты.');const b=$('resendConfirmBtn');b.disabled=true;b.textContent='Отправляем…';const {error}=await db.auth.resend({type:'signup',email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});b.disabled=false;b.textContent='Не пришло письмо подтверждения?';if(error)return say('loginMsg','Не удалось отправить подтверждение: '+error.message);say('loginMsg','Запрос на повторное письмо отправлен. Проверь «Входящие» и «Спам».')};
 async function signInWithGoogle(buttonId,messageId){const button=$(buttonId);button.disabled=true;button.textContent='Переходим к Google…';say(messageId,'Открываем безопасный вход через Google…');const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+window.location.pathname}});if(error){button.disabled=false;button.textContent='G Продолжить с Google';say(messageId,'Не удалось войти через Google: '+error.message)}}
@@ -643,10 +650,13 @@ $('acceptRoomInvite').onclick=()=>answerRoomInvite(true);
 $('declineRoomInvite').onclick=()=>answerRoomInvite(false);
 setInterval(()=>{if(currentUser&&!isGuest())refreshRoomInvites()},5000);
 async function refreshRoomFriendInvites(){
- const box=$('roomFriendInviteList');if(!box||!currentUser||!activeRoomId||isGuest())return;box.innerHTML='Загружаем друзей…';const {data:all,error}=await db.from('friend_requests').select('requester_id,recipient_id').eq('status','accepted').or('requester_id.eq.'+currentUser.id+',recipient_id.eq.'+currentUser.id);
- box.innerHTML='';if(error){box.textContent='Не удалось загрузить друзей: '+error.message;return}const ids=(all||[]).map(x=>x.requester_id===currentUser.id?x.recipient_id:x.requester_id);
- if(!ids.length){box.textContent='Пока нет друзей для приглашения.';return}const {data:ps,error:e}=await db.from('profiles').select('id,username,display_name').in('id',ids);if(e){box.textContent='Ошибка: '+e.message;return}
- (ps||[]).forEach(p=>{const el=document.createElement('div');el.className='result';const name=document.createElement('span');name.textContent=safeName(p)+' · @'+(p.username||'');const b=document.createElement('button');b.className='smallbtn';b.textContent='Пригласить';b.onclick=async()=>{b.disabled=true;const {error:ie}=await db.rpc('invite_friend_to_room',{p_room_id:activeRoomId,p_friend_id:p.id});if(ie){b.disabled=false;return alert(ie.message)}b.textContent='Отправлено ✓'};el.append(name,b);box.append(el)});
+ const box=$('roomFriendInviteList');if(!box||!currentUser||!activeRoomId||isGuest())return;box.innerHTML='Загружаем друзей…';const roomId=activeRoomId;
+ const {data:all,error}=await db.from('friend_requests').select('requester_id,recipient_id').eq('status','accepted').or('requester_id.eq.'+currentUser.id+',recipient_id.eq.'+currentUser.id);
+ box.innerHTML='';if(error){box.textContent='Не удалось загрузить друзей: '+error.message;return}const ids=[...new Set((all||[]).map(x=>x.requester_id===currentUser.id?x.recipient_id:x.requester_id))];
+ if(!ids.length){box.textContent='Пока нет друзей для приглашения.';return}
+ const {data:ps,error:e}=await db.from('profiles').select('id,username,display_name').in('id',ids);if(e){box.textContent='Ошибка: '+e.message;return}
+ if(roomId!==activeRoomId)return;
+ (ps||[]).forEach(p=>{const el=document.createElement('div');el.className='result';const name=document.createElement('span');name.textContent=safeName(p)+' · @'+(p.username||'');const b=document.createElement('button');b.className='smallbtn';b.textContent='Пригласить';b.onclick=async()=>{b.disabled=true;const {data:inviteId,error:ie}=await db.rpc('invite_friend_to_room',{p_room_id:roomId,p_friend_id:p.id});if(ie){b.disabled=false;return alert(ie.message)}b.textContent=inviteId?'Отправлено ✓':'Уже в комнате ✓';b.disabled=true};el.append(name,b);box.append(el)});
 }
 $('openRoomFriendsBtn').onclick=async()=>{$('roomFriendsOverlay').classList.remove('hidden');await refreshRoomFriendInvites()};
 $('closeRoomFriendsBtn').onclick=()=>$('roomFriendsOverlay').classList.add('hidden');
@@ -817,14 +827,7 @@ async function searchActiveVideoProvider(){
  if(activeCatalogProvider==='youtube'){await searchYouTubeVideos();return}
  const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults'),btn=$('youtubeSearchBtn');
  if(!q){status.textContent='Напиши, что хочешь найти.';return}
- if(activeCatalogProvider==='vk'){
-  const searchUrl='https://vkvideo.ru/video?q='+encodeURIComponent(q);
-  sessionStorage.setItem('la_vk_return','1');
-  status.textContent='VK Видео откроется отдельно. После копирования ссылки просто вернись в эту вкладку L&A Watch.';
-  const link=document.createElement('a');link.href=searchUrl;link.target='_blank';link.rel='noopener noreferrer';link.style.display='none';document.body.append(link);link.click();link.remove();
-  return;
- }
- btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на RUTUBE…';
+ btn.disabled=true;box.innerHTML='';status.textContent='Ищем видео на '+(activeCatalogProvider==='vk'?'VK Видео':'RUTUBE')+'…';
  try{
   const endpoint=activeCatalogProvider==='vk'?'/api/vk-search':'/api/rutube-search';
   const response=await fetch(endpoint+'?q='+encodeURIComponent(q));
@@ -840,7 +843,8 @@ async function searchActiveVideoProvider(){
    const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';
    const title=document.createElement('strong');title.textContent=item.title||('Видео '+(activeCatalogProvider==='vk'?'VK':'RUTUBE'));title.style.cssText='display:block;font-size:14px;line-height:1.35';
    const author=document.createElement('small');author.textContent=item.author||(activeCatalogProvider==='vk'?'VK Видео':'RUTUBE');author.style.cssText='display:block;color:#aaa;margin-top:5px';
-   copy.append(title,author);card.append(copy);const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;width:100%;margin-top:8px';const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='smallbtn';openBtn.textContent='▶ Открыть';openBtn.onclick=()=>playExternalCatalogVideo(item.url,'RUTUBE');const queueBtn=document.createElement('button');queueBtn.type='button';queueBtn.className='secondary';queueBtn.textContent='＋ В очередь';queueBtn.onclick=()=>addCatalogVideoToQueue(item.url,'RUTUBE');actions.append(openBtn,queueBtn);card.append(actions);box.append(card);
+   const platform=activeCatalogProvider==='vk'?'VK Видео':'RUTUBE';
+   copy.append(title,author);card.append(copy);const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;width:100%;margin-top:8px';const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='smallbtn';openBtn.textContent='▶ Открыть';openBtn.onclick=()=>playExternalCatalogVideo(item.url,platform);const queueBtn=document.createElement('button');queueBtn.type='button';queueBtn.className='secondary';queueBtn.textContent='＋ В очередь';queueBtn.onclick=()=>addCatalogVideoToQueue(item.url,platform);actions.append(openBtn,queueBtn);card.append(actions);box.append(card);
   });
  }catch(error){status.textContent='Не удалось выполнить поиск: '+error.message}
  finally{btn.disabled=false}
