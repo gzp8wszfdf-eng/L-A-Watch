@@ -678,15 +678,8 @@ function getExternalVideoEmbedUrl(raw){
    if(u.searchParams.has('t'))params.set('t',u.searchParams.get('t'));
    return 'https://rutube.ru/play/embed/'+match[1]+'/'+(params.toString()?'?'+params.toString():'');
   }
-  if(['vk.com','vkvideo.ru','m.vk.com','m.vkvideo.ru'].includes(host)){
-   if(u.pathname.toLowerCase().endsWith('/video_ext.php'))return u.href;
-   const match=u.pathname.match(/video(-?\d+)_(\d+)/i);
-   if(!match)return null;
-   const params=new URLSearchParams({oid:match[1],id:match[2]});
-   if(u.searchParams.has('hash'))params.set('hash',u.searchParams.get('hash'));
-   if(u.searchParams.has('hd'))params.set('hd',u.searchParams.get('hd'));
-   return 'https://vkvideo.ru/video_ext.php?'+params.toString();
-  }
+  // VK may display anti-bot challenges inside embedded players. Open VK links externally instead.
+  if(['vk.com','vkvideo.ru','m.vk.com','m.vkvideo.ru'].includes(host))return null;
  }catch(e){}
  return null;
 }
@@ -912,11 +905,12 @@ function renderRoomVideo(url,pos=0,playing=false){
   try{externalHost=new URL(url).hostname.replace(/^www\\./,'')}catch(e){}
   const fallback=document.createElement('div');
   fallback.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:radial-gradient(circle at top,#272039,#08080d);';
-  const title=document.createElement('strong');title.textContent='Этот сайт не разрешает встроенный просмотр';
+  const isVkHost=/^(www\.)?(vk\.com|vkvideo\.ru|m\.vk\.com|m\.vkvideo\.ru)$/i.test(externalHost);
+  const title=document.createElement('strong');title.textContent=isVkHost?'VK требует проверку вне L&A Watch':'Этот сайт не разрешает встроенный просмотр';
   title.style.cssText='font-size:16px;color:#fff';
-  const note=document.createElement('div');note.textContent='Открой видео на исходном сайте. После просмотра можно вернуться в комнату.';
+  const note=document.createElement('div');note.textContent=isVkHost?'Чтобы не показывать CAPTCHA внутри комнаты, открой видео в приложении или на сайте VK. Затем вернись сюда.':'Открой видео на исходном сайте. После просмотра можно вернуться в комнату.';
   note.style.cssText='max-width:360px;color:#aaa8ba;font-size:13px';
-  const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть на '+externalHost;
+  const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=isVkHost?'Открыть в VK':'Открыть на '+externalHost;
   link.style.cssText='display:inline-flex;align-items:center;justify-content:center;padding:11px 18px;border-radius:12px;background:linear-gradient(135deg,#ff6fae,#9b86ff);color:#fff;text-decoration:none;font-weight:700';
   fallback.append(title,note,link);screen.append(fallback);
  }
