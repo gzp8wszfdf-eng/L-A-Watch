@@ -385,7 +385,9 @@ async function appendRoomMessage(m){
  if(profile?.id){avatar.tabIndex=0;avatar.setAttribute('role','button');avatar.setAttribute('aria-label','Открыть профиль '+(m.username||''));avatar.title='Открыть профиль';avatar.onclick=()=>openFriendProfile(profile);avatar.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFriendProfile(profile)}};avatar.style.cursor='pointer'}
  el.append(avatar);
  const body=document.createElement('div');body.className='room-msg-body';
- const b=document.createElement('b');b.textContent=m.username||'Пользователь';const t=document.createElement('span');t.textContent=m.content||'';
+ const b=document.createElement('b');b.textContent=m.username||'Пользователь';
+ if(profile?.id){b.tabIndex=0;b.setAttribute('role','button');b.setAttribute('aria-label','Открыть профиль '+(m.username||''));b.title='Открыть профиль';b.style.cursor='pointer';b.onclick=()=>openFriendProfile(profile);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFriendProfile(profile)}}}
+ const t=document.createElement('span');t.textContent=m.content||'';
  body.append(b,t);el.append(body);box.append(el);box.scrollTop=box.scrollHeight;
 }
 function makeRoomFallback(username){const a=document.createElement('span');a.className='room-msg-avatar';a.textContent=(username||'П').trim().charAt(0).toUpperCase()||'П';return a}
