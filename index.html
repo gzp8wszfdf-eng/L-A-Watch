@@ -878,8 +878,10 @@ function renderRoomVideo(url,pos=0,playing=false){
   });
   return;
  }
- const ytId=getYouTubeId(url);
- const externalEmbedUrl=getExternalVideoEmbedUrl(url);
+ // Never embed third-party video pages: providers may inject CAPTCHA or anti-bot challenges.
+ // Only direct media files and files uploaded to our own storage play inside L&A Watch.
+ const ytId=null;
+ const externalEmbedUrl=null;
  if(ytId){
   const frame=document.createElement('div');frame.id='youtube-player-frame';frame.style.cssText='position:absolute;inset:0;width:100%;height:100%';screen.append(frame);
   const createPlayer=()=>{
@@ -905,12 +907,11 @@ function renderRoomVideo(url,pos=0,playing=false){
   try{externalHost=new URL(url).hostname.replace(/^www\\./,'')}catch(e){}
   const fallback=document.createElement('div');
   fallback.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:radial-gradient(circle at top,#272039,#08080d);';
-  const isVkHost=/^(www\.)?(vk\.com|vkvideo\.ru|m\.vk\.com|m\.vkvideo\.ru)$/i.test(externalHost);
-  const title=document.createElement('strong');title.textContent=isVkHost?'VK требует проверку вне L&A Watch':'Этот сайт не разрешает встроенный просмотр';
+  const title=document.createElement('strong');title.textContent='Внешнее видео открывается отдельно';
   title.style.cssText='font-size:16px;color:#fff';
-  const note=document.createElement('div');note.textContent=isVkHost?'Чтобы не показывать CAPTCHA внутри комнаты, открой видео в приложении или на сайте VK. Затем вернись сюда.':'Открой видео на исходном сайте. После просмотра можно вернуться в комнату.';
+  const note=document.createElement('div');note.textContent='Чтобы сторонние сайты не показывали CAPTCHA внутри комнаты, открой видео на исходном сайте. Затем вернись сюда.';
   note.style.cssText='max-width:360px;color:#aaa8ba;font-size:13px';
-  const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=isVkHost?'Открыть в VK':'Открыть на '+externalHost;
+  const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть на '+externalHost;
   link.style.cssText='display:inline-flex;align-items:center;justify-content:center;padding:11px 18px;border-radius:12px;background:linear-gradient(135deg,#ff6fae,#9b86ff);color:#fff;text-decoration:none;font-weight:700';
   fallback.append(title,note,link);screen.append(fallback);
  }
