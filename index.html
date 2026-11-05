@@ -804,3 +804,4 @@ $('mandoraForm').addEventListener('submit',async event=>{
 db.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>showSession(session),0)});
 (async()=>{const {data}=await db.auth.getSession();await showSession(data.session);if(!data.session)say('globalMsg','L&A Watch готов к регистрации и входу.');})();
 </script></body></html>
+<!-- Cloudflare Pages redeploy trigger -->
