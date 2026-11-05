@@ -358,8 +358,7 @@ async function joinVoice(){
   localAudioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
   voiceActive=true;voiceMuted=false;
   $('voiceJoinBtn').disabled=true;$('voiceMuteBtn').disabled=false;$('voiceOutputBtn').disabled=false;$('voiceLeaveBtn').disabled=false;$('voiceMuteBtn').textContent='Выключить микрофон';$('voiceOutputBtn').textContent=voiceOutputMuted?'Включить звук':'Выключить звук';
-  const {data:p}=await db.from('profiles').select('display_name,username').eq('id',currentUser.id).maybeSingle();
-  await roomChannel.track({userId:currentUser.id,displayName:p?.display_name||p?.username||'Участник',voiceActive:true});
+  await trackRoomViewer();
   voiceSay('Ты подключён к голосовой комнате. Разреши микрофон в Safari, если появится запрос.');
   renderVoiceUsers();
   voicePresence().forEach(p=>voiceOffer(p.userId).catch(e=>console.error(e)));
