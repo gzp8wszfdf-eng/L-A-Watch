@@ -75,12 +75,7 @@ async function showSession(session){
  $('status').textContent=currentUser?'● аккаунт подключён':'● не выполнен вход';
  if(!currentUser){activeRoomId=null;activeRoomCode=null;if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}return}
  const userId=currentUser.id;
- const {data:p,error}=await db.from('profiles').select('*').eq('id',userId).maybeSingle();
- if(error){say('globalMsg','Ошибка профиля: '+error.message);return}
- $('helloName').textContent=safeName(p||{username:currentUser.email?.split('@')[0]});
- $('myUsername').textContent='@'+(p?.username||'');
- say('globalMsg','Ты вошёл в L&A Watch. Профиль готов.');
- // Restore the room immediately; social lists must not delay room recovery.
+ // Restore the room before loading profile/social data, so those requests cannot block recovery.
  if(!activeRoomId && !roomRestoreTask){
   roomRestoreTask=(async()=>{
    try{
@@ -88,13 +83,21 @@ async function showSession(session){
     const saved=raw?JSON.parse(raw):null;
     if(saved?.id&&saved?.code&&saved?.userId===userId&&currentUser?.id===userId){
      roomSay('Возвращаем тебя в комнату…');
-     await openRoom(saved.id,saved.code);
+     const {data:membership,error:membershipError}=await db.from('room_members').select('room_id').eq('room_id',saved.id).eq('user_id',userId).maybeSingle();
+     if(membershipError)throw membershipError;
+     if(membership?.room_id)await openRoom(saved.id,saved.code);
+     else{localStorage.removeItem('lawatch:lastRoom');roomSay('Старая комната недоступна. Создай новую или войди по коду.')}
     }
    }catch(e){console.error('Не удалось восстановить комнату',e);roomSay('Не удалось восстановить комнату. Попробуй войти по коду.')}
    finally{roomRestoreTask=null}
   })();
   await roomRestoreTask;
  }
+ const {data:p,error}=await db.from('profiles').select('*').eq('id',userId).maybeSingle();
+ if(error){say('globalMsg','Ошибка профиля: '+error.message);return}
+ $('helloName').textContent=safeName(p||{username:currentUser.email?.split('@')[0]});
+ $('myUsername').textContent='@'+(p?.username||'');
+ say('globalMsg','Ты вошёл в L&A Watch. Профиль готов.');
  await refreshSocial();
 }
 $('signupBtn').onclick=async()=>{
