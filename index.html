@@ -31,7 +31,7 @@
 <div class="dash">
 <div class="panel" id="friendSearchPanel"><h3>👤 Найти друзей</h3><p class="muted">Введи точный ник пользователя.</p><div class="row"><input id="searchName" class="field" placeholder="Никнейм"><button class="smallbtn" id="searchBtn">Найти</button></div><div id="searchResults" class="list"></div></div>
 <div class="panel" id="requestsPanel"><h3>💌 Заявки в друзья</h3><div id="requests" class="list muted">Пока нет заявок.</div></div>
-<div class="panel" id="friendsPanel"><h3>💜 Мои друзья</h3><div id="friends" class="list muted">Список друзей появится здесь.</div></div>
+<div class="panel" id="friendsPanel"><h3>💜 Мои друзья</h3><div id="friends" class="list muted">Список друзей появится здесь.</div><div class="divider"></div><h3>🚫 Заблокированные</h3><div id="blockedUsers" class="list muted">Нет заблокированных пользователей.</div></div>
 <div class="panel hidden" id="dmPanel"><div class="row" style="justify-content:space-between"><button class="smallbtn" id="backFriends">← Друзья</button><strong id="dmTitle">Переписка</strong><button class="smallbtn" id="friendMenuBtn" aria-label="Действия с другом">⋯</button></div><div id="friendMenu" class="friend-menu hidden"><button id="blockFriendBtn" class="secondary danger">Заблокировать</button><button id="removeFriendBtn" class="secondary">Удалить из друзей</button></div><div id="dmEmpty" class="notice">Выбери друга в списке.</div><div class="chatbox" id="dmMessages"></div><div class="row" id="dmComposer"><input id="dmText" class="field" placeholder="Сообщение…"><button class="smallbtn" id="sendDm">➤</button></div></div>
 </div>
 <div class="panel" id="roomPanel">
@@ -70,6 +70,12 @@ async function refreshSocial(){
  const {data:all,error}=await db.from('friend_requests').select('*').eq('status','accepted').or('requester_id.eq.'+currentUser.id+',recipient_id.eq.'+currentUser.id);
  if(error){say('friends','Не удалось загрузить друзей: '+error.message);return}
  $('friends').innerHTML='';let ids=(all||[]).map(x=>x.requester_id===currentUser.id?x.recipient_id:x.requester_id);
+ const {data:blocks,error:blockListError}=await db.from('user_blocks').select('blocked_id').eq('blocker_id',currentUser.id);
+ $('blockedUsers').innerHTML='';
+ if(blockListError){$('blockedUsers').textContent='Не удалось загрузить список: '+blockListError.message}else if(!blocks?.length){$('blockedUsers').textContent='Нет заблокированных пользователей.'}else{
+  const {data:blockedProfiles,error:blockedProfilesError}=await db.from('profiles').select('id,username,display_name').in('id',blocks.map(x=>x.blocked_id));
+  if(blockedProfilesError){$('blockedUsers').textContent='Не удалось загрузить профили: '+blockedProfilesError.message}else (blockedProfiles||[]).forEach(p=>{const el=document.createElement('div');el.className='result';const name=document.createElement('span');name.textContent=safeName(p)+' · @'+p.username;const b=document.createElement('button');b.className='smallbtn';b.textContent='Разблокировать';b.onclick=async()=>{if(!confirm('Разблокировать '+safeName(p)+' и восстановить чат?'))return; b.disabled=true;const {error:unblockError}=await db.from('user_blocks').delete().eq('blocker_id',currentUser.id).eq('blocked_id',p.id);if(unblockError){b.disabled=false;return alert('Не удалось разблокировать: '+unblockError.message)}const {error:friendError}=await db.from('friend_requests').insert({requester_id:currentUser.id,recipient_id:p.id,status:'accepted'});if(friendError){alert('Пользователь разблокирован, но чат не восстановлен: '+friendError.message+' — отправь ему новую заявку в друзья.')}await refreshSocial()};el.append(name,b);$('blockedUsers').append(el)})
+ }
  if(!ids.length){$('friends').textContent='Пока нет друзей.';return}
  const {data:ps,error:profileError}=await db.from('profiles').select('id,username,display_name,avatar_url').in('id',ids);
  if(profileError){say('friends','Не удалось загрузить профили: '+profileError.message);return}
