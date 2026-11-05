@@ -68,27 +68,34 @@ async function refreshSocial(){
  const {data:ps}=await db.from('profiles').select('id,username,display_name').in('id',ids);
  (ps||[]).forEach(p=>{const el=document.createElement('div');el.className='result';const s=document.createElement('span');s.textContent=safeName(p)+' · @'+p.username;const b=document.createElement('button');b.className='smallbtn';b.textContent='Написать';b.onclick=()=>{$('dmTo').value=p.username;activeFriend=p;loadDm()};el.append(s,b);$('friends').append(el)});
 }
+let roomRestoreTask=null;
 async function showSession(session){
  currentUser=session?.user||null;
  $('authArea').classList.toggle('hidden',!!currentUser);$('appArea').classList.toggle('hidden',!currentUser);
  $('status').textContent=currentUser?'● аккаунт подключён':'● не выполнен вход';
- if(!currentUser)return;
- const {data:p,error}=await db.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
+ if(!currentUser){activeRoomId=null;activeRoomCode=null;if(roomChannel){await db.removeChannel(roomChannel);roomChannel=null}return}
+ const userId=currentUser.id;
+ const {data:p,error}=await db.from('profiles').select('*').eq('id',userId).maybeSingle();
  if(error){say('globalMsg','Ошибка профиля: '+error.message);return}
  $('helloName').textContent=safeName(p||{username:currentUser.email?.split('@')[0]});
  $('myUsername').textContent='@'+(p?.username||'');
  say('globalMsg','Ты вошёл в L&A Watch. Профиль готов.');
- await refreshSocial();
- // Restore the last room for this signed-in user after a page reload.
- if(!activeRoomId){
-  try{
-   const saved=JSON.parse(localStorage.getItem('lawatch:lastRoom')||'null');
-   if(saved?.id&&saved?.code&&saved?.userId===currentUser.id){
-    roomSay('Возвращаем тебя в комнату…');
-    await openRoom(saved.id,saved.code);
-   }
-  }catch(e){console.warn('Не удалось восстановить комнату',e)}
+ // Restore the room immediately; social lists must not delay room recovery.
+ if(!activeRoomId && !roomRestoreTask){
+  roomRestoreTask=(async()=>{
+   try{
+    const raw=localStorage.getItem('lawatch:lastRoom');
+    const saved=raw?JSON.parse(raw):null;
+    if(saved?.id&&saved?.code&&saved?.userId===userId&&currentUser?.id===userId){
+     roomSay('Возвращаем тебя в комнату…');
+     await openRoom(saved.id,saved.code);
+    }
+   }catch(e){console.error('Не удалось восстановить комнату',e);roomSay('Не удалось восстановить комнату. Попробуй войти по коду.')}
+   finally{roomRestoreTask=null}
+  })();
+  await roomRestoreTask;
  }
+ await refreshSocial();
 }
 $('signupBtn').onclick=async()=>{
  const username=$('signupName').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
