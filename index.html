@@ -79,7 +79,57 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 .gallery-picker-status{min-height:22px;color:#aaa;font-size:13px}
 .gallery-launch-btn{width:42px;height:38px;display:grid;place-items:center;padding:5px;border:1px solid #ffffff20;border-radius:10px;background:#ffffff0a;color:#fff;font-size:21px;flex:none}
 .gallery-picker-body .primary:disabled{opacity:.45;cursor:not-allowed}
-.room-video-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}.room-video-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.room-video-actions .youtube-launch-btn{display:grid;place-items:center;min-width:42px;min-height:40px;padding:8px 10px;border-radius:12px}.room-video-actions .youtube-launch-btn svg{width:30px;height:24px;display:block}.room-video-actions #openRutubePickerBtn svg{width:23px;height:23px}.room-video-actions #openVkPickerBtn svg{width:30px;height:22px}.room-video-link-row{display:flex;align-items:center;gap:8px;width:100%}.room-video-link-row .field{flex:1;min-width:0;margin:0}.room-video-link-row button{flex:none}@media(max-width:520px){.room-video-actions{gap:6px}.room-video-actions .youtube-launch-btn{min-width:39px;min-height:38px;padding:7px 8px}.room-video-link-row{gap:6px}.room-video-link-row .field{font-size:13px;padding:10px 8px}}</style></head>
+.room-video-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}.room-video-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.room-video-actions .youtube-launch-btn{display:grid;place-items:center;min-width:42px;min-height:40px;padding:8px 10px;border-radius:12px}.room-video-actions .youtube-launch-btn svg{width:30px;height:24px;display:block}.room-video-actions #openRutubePickerBtn svg{width:23px;height:23px}.room-video-actions #openVkPickerBtn svg{width:30px;height:22px}.room-video-link-row{display:flex;align-items:center;gap:8px;width:100%}.room-video-link-row .field{flex:1;min-width:0;margin:0}.room-video-link-row button{flex:none}@media(max-width:520px){.room-video-actions{gap:6px}.room-video-actions .youtube-launch-btn{min-width:39px;min-height:38px;padding:7px 8px}.room-video-link-row{gap:6px}.room-video-link-row .field{font-size:13px;padding:10px 8px}}
+/* Video search cards: keep thumbnails clear of action buttons */
+.youtube-picker-results .result{
+ display:grid!important;
+ grid-template-columns:minmax(0,145px) minmax(0,1fr)!important;
+ grid-template-rows:auto auto!important;
+ align-items:center!important;
+ gap:8px 10px!important;
+ padding:8px!important;
+ margin:8px 0!important;
+ overflow:hidden!important;
+}
+.youtube-picker-results .result>img{
+ display:block!important;
+ width:100%!important;
+ max-width:145px!important;
+ min-width:0!important;
+ height:auto!important;
+ aspect-ratio:16/9!important;
+ object-fit:cover!important;
+ grid-column:1!important;
+ grid-row:1!important;
+}
+.youtube-picker-results .result>span{
+ grid-column:2!important;
+ grid-row:1!important;
+ min-width:0!important;
+ overflow:hidden!important;
+}
+.youtube-picker-results .result>div:last-child{
+ grid-column:1/-1!important;
+ grid-row:2!important;
+ display:grid!important;
+ grid-template-columns:1fr 1fr!important;
+ gap:8px!important;
+ width:100%!important;
+ margin:0!important;
+}
+.youtube-picker-results .result>div:last-child button{
+ min-width:0!important;
+ width:100%!important;
+ min-height:36px!important;
+ padding:7px 8px!important;
+ white-space:nowrap!important;
+}
+@media(max-width:520px){
+ .youtube-picker-results .result{grid-template-columns:minmax(0,38%) minmax(0,1fr)!important;gap:7px 9px!important;padding:7px!important}
+ .youtube-picker-results .result>img{max-width:145px!important}
+}
+
+</style></head>
 <body><div class="wrap">
 <header class="top"><button class="secondary menu-btn hidden" id="settingsBtn" aria-label="Открыть меню" title="Меню"><span></span><span></span><span></span></button><div class="brand"><div class="logo">L&A</div>Watch</div><div class="status" id="status">● подключение</div></header>
 <main>
