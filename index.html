@@ -31,6 +31,12 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 .mandora-form button{border:0;border-radius:12px;padding:0 13px;background:var(--violet);color:#171321;font-weight:800}
 @media(max-width:520px){.mandora-launch{bottom:12px;left:10px}.mandora-window{left:10px;bottom:60px;width:calc(100vw - 20px);height:min(410px,calc(100dvh - 82px))}}
 
+/* Video provider tabs */
+.video-provider-tabs{display:flex;gap:8px;max-width:760px;width:100%;margin:0 auto;overflow-x:auto;padding:2px 0 4px}
+.video-provider-tab{flex:1;min-width:max-content;padding:10px 13px;border:1px solid #3b3b3b;border-radius:22px;background:#202020;color:#ddd;font-weight:700}
+.video-provider-tab.active{background:#f1f1f1;color:#111;border-color:#f1f1f1}
+.video-provider-note{max-width:760px;width:100%;margin:0 auto;color:#aaa;font-size:12px}
+
 /* YouTube-style full-screen picker */
 .youtube-tabs{display:flex;gap:9px;max-width:760px;width:100%;margin:0 auto}.youtube-tab{padding:9px 17px;border-radius:22px;background:#272727;color:#ddd;font-weight:650}.youtube-tab.active{background:#f1f1f1;color:#111}.youtube-back{align-self:flex-start;background:transparent;color:#8ab4f8;padding:5px 0}.youtube-channel-result{align-items:center!important}.youtube-channel-result img{width:76px!important;height:76px!important;aspect-ratio:1!important;border-radius:50%!important;object-fit:cover}
 .youtube-picker-overlay{padding:0;background:#0f0f0f;backdrop-filter:none;align-items:stretch;justify-content:stretch}
@@ -128,7 +134,7 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 <div class="room-topbar"><button class="secondary" id="backToRoomsBtn">← К комнатам</button><button class="smallbtn hidden" id="guestExitRoomBtn">Выйти из гостя</button><div class="room-code-compact"><span>Код:</span> <strong id="roomCode" class="grad"></strong></div><div class="room-top-actions"><button class="smallbtn" id="copyRoomCode">Копировать</button><div class="room-top-icons"><button class="smallbtn viewers-eye" id="openRoomFriendsBtn" aria-label="Пригласить друзей" title="Пригласить друзей">＋</button><button class="smallbtn viewers-eye" id="openViewersBtn" aria-label="Зрители" title="Зрители">👁</button></div></div></div>
 <div class="screen room-video-screen hidden" id="videoScreen"><div class="muted">Здесь появится видео</div></div>
 <section class="youtube-picker-overlay hidden" id="galleryPicker" role="dialog" aria-modal="true" aria-labelledby="galleryPickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div class="youtube-brand"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:30px;height:30px"><rect x="2" y="2" width="20" height="20" rx="5" fill="#8f7cff"/><circle cx="8" cy="8" r="2" fill="#fff"/><path d="M3 18l6-7 4 4 3-3 5 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><strong id="galleryPickerTitle">Галерея</strong></div><button class="youtube-close" id="closeGalleryPickerBtn" aria-label="Закрыть">✕</button></div><p class="muted" style="color:#aaa">Выбери фото или видео из галереи iPhone. После загрузки оно появится у всех участников комнаты.</p><input id="galleryFileInput" type="file" accept="image/*,video/*" hidden><button type="button" class="primary" id="gallerySelectBtn" style="width:100%;max-width:420px;margin:8px auto;padding:15px;border-radius:24px">＋ Выбрать фото или видео</button><p class="muted" id="galleryUploadStatus" style="text-align:center;color:#aaa">Поддерживаются фото и видео до 50 МБ.</p></div></section>
-<section class="youtube-picker-overlay hidden" id="youtubeCatalog" role="dialog" aria-modal="true" aria-labelledby="youtubePickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div class="youtube-brand"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg><strong id="youtubePickerTitle">YouTube</strong></div><button class="youtube-close" id="closeYoutubePickerBtn" aria-label="Закрыть">✕</button></div><div class="youtube-tabs"><button type="button" class="youtube-tab active" id="youtubeVideosTab">Видео</button><button type="button" class="youtube-tab" id="youtubeChannelsTab">Каналы</button></div><form class="youtube-picker-search" id="youtubeSearchForm"><input class="field" id="youtubeSearchInput" placeholder="Поиск видео" autocomplete="off"><button class="youtube-search-btn" id="youtubeSearchBtn" type="submit" aria-label="Найти"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></form><button type="button" class="youtube-back hidden" id="youtubeChannelBack">← К результатам каналов</button><p class="muted youtube-status" id="youtubeSearchStatus">Поиск видео и каналов YouTube доступен без входа в Google.</p><div id="youtubeSearchResults" class="youtube-picker-results"></div></div></section>
+<section class="youtube-picker-overlay hidden" id="youtubeCatalog" role="dialog" aria-modal="true" aria-labelledby="youtubePickerTitle"><div class="youtube-picker-card"><div class="youtube-picker-head"><div class="youtube-brand"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg><strong id="youtubePickerTitle">YouTube</strong></div><button class="youtube-close" id="closeYoutubePickerBtn" aria-label="Закрыть">✕</button></div><div class="video-provider-tabs" id="videoProviderTabs"><button type="button" class="video-provider-tab active" id="providerYoutubeTab">YouTube</button><button type="button" class="video-provider-tab" id="providerRutubeTab">RUTUBE</button><button type="button" class="video-provider-tab" id="providerVkTab">VK Видео</button></div><div class="youtube-tabs" id="youtubeSubTabs"><button type="button" class="youtube-tab active" id="youtubeVideosTab">Видео</button><button type="button" class="youtube-tab" id="youtubeChannelsTab">Каналы</button></div><form class="youtube-picker-search" id="youtubeSearchForm"><input class="field" id="youtubeSearchInput" placeholder="Поиск видео" autocomplete="off"><button class="youtube-search-btn" id="youtubeSearchBtn" type="submit" aria-label="Найти"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></form><button type="button" class="youtube-back hidden" id="youtubeChannelBack">← К результатам каналов</button><p class="muted youtube-status" id="youtubeSearchStatus">Поиск видео и каналов YouTube доступен без входа в Google.</p><p class="video-provider-note hidden" id="videoProviderNote"></p><div id="youtubeSearchResults" class="youtube-picker-results"></div></div></section>
 <section class="gallery-picker-overlay hidden" id="galleryCatalog" role="dialog" aria-modal="true" aria-labelledby="galleryPickerTitle"><div class="gallery-picker-card"><div class="gallery-picker-head"><strong id="galleryPickerTitle">▧ Галерея</strong><button class="gallery-picker-close" id="closeGalleryPickerBtn" type="button" aria-label="Закрыть">✕</button></div><div class="gallery-picker-body"><div class="gallery-picker-icon">▧</div><strong>Выбери фото или видео</strong><p>Выбранный файл загрузится в комнату, и его смогут увидеть все участники.</p><input id="galleryFileInput" type="file" accept="image/*,video/*" hidden><button class="primary" id="chooseGalleryFileBtn" type="button">Открыть галерею</button><div class="gallery-file-info" id="galleryFileInfo">Файл не выбран</div><button class="primary" id="uploadGalleryFileBtn" type="button" disabled>Загрузить и открыть всем</button><div class="gallery-picker-status" id="galleryPickerStatus">Поддерживаются фото и видео до 50 МБ.</div></div></div></section>
 <div class="room-video-controls"><button class="youtube-launch-btn" id="openYoutubePickerBtn" type="button" aria-label="Открыть YouTube" title="YouTube"><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="1" y="1" width="46" height="32" rx="9" fill="#ff0033"/><path d="M20 9.5L32 17 20 24.5z" fill="#fff"/></svg></button><button class="youtube-launch-btn" id="openGalleryPickerBtn" type="button" aria-label="Открыть галерею" title="Галерея"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#8f7cff"/><circle cx="8" cy="8" r="2" fill="#fff"/><path d="M3 18l6-7 4 4 3-3 5 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="videoUrl" class="field" placeholder="Ссылка YouTube, VK Видео, RUTUBE или MP4/WebM"><button class="smallbtn" id="loadVideoBtn">Открыть</button><button class="secondary" id="addVideoQueueBtn">＋ В очередь</button><button class="smallbtn queue-action-btn" id="playNextQueueBtn" disabled aria-label="Следующее видео" title="Включить следующее видео">⏭</button><button class="smallbtn queue-action-btn" id="toggleVideoQueueBtn" aria-label="Показать очередь" title="Видео в очереди">☷</button></div>
 
@@ -637,7 +643,7 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
  function setYoutubeMode(mode){youtubeSearchMode=mode;$('youtubeVideosTab').classList.toggle('active',mode==='videos');$('youtubeChannelsTab').classList.toggle('active',mode==='channels');$('youtubeSearchInput').placeholder=mode==='channels'?'Найти блогера или канал':'Поиск видео';$('youtubeChannelBack').classList.add('hidden');$('youtubeSearchInput').value='';$('youtubeSearchResults').innerHTML='';$('youtubeSearchStatus').textContent=mode==='channels'?'Найди блогера или канал на YouTube.':'Найди видео и выбери его — оно запустится в комнате для всех.'}
  $('youtubeVideosTab').onclick=()=>setYoutubeMode('videos');$('youtubeChannelsTab').onclick=()=>setYoutubeMode('channels');
  $('youtubeChannelBack').onclick=()=>{setYoutubeMode('channels');$('youtubeSearchInput').value=youtubeChannelResultsQuery;searchYouTubeVideos()};
- $('youtubeSearchForm').addEventListener('submit',e=>{e.preventDefault();searchYouTubeVideos()});
+ $('youtubeSearchForm').addEventListener('submit',e=>{e.preventDefault();searchActiveVideoProvider()});
  async function searchYouTubeVideos(modeOverride=null,channelId=null){
   const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults'),mode=modeOverride||youtubeSearchMode;
   if(!q&&mode!=='channelVideos'){status.textContent='Напиши, что хочешь найти.';return}
@@ -648,6 +654,70 @@ let youtubeSearchMode='videos',youtubeChannelResultsQuery='';
    })
   }catch(e){status.textContent='Не удалось загрузить: '+e.message}finally{btn.disabled=false}
  }
+let activeCatalogProvider='youtube';
+function setCatalogProvider(provider){
+ activeCatalogProvider=provider;
+ $('providerYoutubeTab').classList.toggle('active',provider==='youtube');
+ $('providerRutubeTab').classList.toggle('active',provider==='rutube');
+ $('providerVkTab').classList.toggle('active',provider==='vk');
+ $('youtubeSubTabs').classList.toggle('hidden',provider!=='youtube');
+ $('youtubeChannelBack').classList.add('hidden');
+ $('youtubeSearchInput').value='';
+ $('youtubeSearchResults').innerHTML='';
+ $('videoProviderNote').classList.toggle('hidden',provider!=='vk');
+ if(provider==='youtube'){
+  $('youtubeSearchInput').placeholder=youtubeSearchMode==='channels'?'Найти блогера или канал':'Поиск видео';
+  $('youtubeSearchStatus').textContent='Поиск видео и каналов YouTube доступен без входа в Google.';
+ }else if(provider==='rutube'){
+  $('youtubeSearchInput').placeholder='Поиск видео на RUTUBE';
+  $('youtubeSearchStatus').textContent='Ищи открытые видео RUTUBE без входа в аккаунт.';
+ }else{
+  $('youtubeSearchInput').placeholder='Что найти в VK Видео?';
+  $('youtubeSearchStatus').textContent='Поиск открытых видео VK без входа.';
+  $('videoProviderNote').textContent='VK открывает публичную страницу поиска. Выбери открытый ролик, скопируй ссылку и вставь её в поле ссылки комнаты. Закрытые и ограниченные видео могут не открываться.';
+ }
+}
+$('providerYoutubeTab').onclick=()=>setCatalogProvider('youtube');
+$('providerRutubeTab').onclick=()=>setCatalogProvider('rutube');
+$('providerVkTab').onclick=()=>setCatalogProvider('vk');
+async function searchActiveVideoProvider(){
+ if(activeCatalogProvider==='youtube'){await searchYouTubeVideos();return}
+ const q=$('youtubeSearchInput').value.trim(),status=$('youtubeSearchStatus'),box=$('youtubeSearchResults'),btn=$('youtubeSearchBtn');
+ if(!q){status.textContent='Напиши, что хочешь найти.';return}
+ if(activeCatalogProvider==='vk'){
+  const link=document.createElement('a');link.className='result';link.href='https://vkvideo.ru/video?q='+encodeURIComponent(q);link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='color:#fff;text-decoration:none;display:block';
+  const title=document.createElement('strong');title.textContent='Открыть поиск «'+q+'» в VK Видео';title.style.cssText='display:block;font-size:15px';
+  const detail=document.createElement('small');detail.textContent='Откроется публичный поиск VK. Выбери видео и скопируй его ссылку.';link.append(title,detail);box.replaceChildren(link);
+  status.textContent='Поиск VK готов. Нажми на результат ниже.';return;
+ }
+ btn.disabled=true;status.textContent='Ищем видео на RUTUBE…';box.innerHTML='';
+ try{
+  const response=await fetch('/api/rutube-search?q='+encodeURIComponent(q));
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'RUTUBE временно не отвечает');
+  const items=Array.isArray(data.items)?data.items:[];
+  if(!items.length){status.textContent='Ничего не найдено.';return}
+  status.textContent='Найдено видео RUTUBE: '+items.length;
+  items.forEach(item=>{
+   if(!item.url)return;
+   const card=document.createElement('button');card.type='button';card.className='result';card.style.textAlign='left';
+   if(item.thumbnail){const img=document.createElement('img');img.src=item.thumbnail;img.alt='';img.loading='lazy';img.style.cssText='width:min(42%,180px);aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none;background:#050509';card.append(img)}
+   const copy=document.createElement('span');copy.style.cssText='min-width:0;flex:1';
+   const title=document.createElement('strong');title.textContent=item.title||'Видео RUTUBE';title.style.cssText='display:block;font-size:14px;line-height:1.35';
+   const author=document.createElement('small');author.textContent=item.author||'RUTUBE';author.style.cssText='display:block;color:#aaa;margin-top:5px';
+   copy.append(title,author);card.append(copy);card.onclick=()=>playExternalCatalogVideo(item.url,'RUTUBE');box.append(card);
+  });
+ }catch(error){status.textContent='Не удалось выполнить поиск: '+error.message}
+ finally{btn.disabled=false}
+}
+async function playExternalCatalogVideo(url,platform){
+ if(!activeRoomId)return roomSay('Сначала войди в комнату.');
+ $('videoUrl').value=url;$('youtubeCatalog').classList.add('hidden');$('videoScreen').classList.remove('hidden');
+ renderRoomVideo(url,0,true);
+ const state={room_id:activeRoomId,client_id:playbackClientId,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString()};
+ broadcastPlayback(state);const {error}=await db.from('playback_state').upsert(state);
+ roomSay(error?'Не удалось отправить видео участникам: '+error.message:platform+' запускается для всех участников комнаты.');
+}
  async function openYoutubeChannel(channelId,title){youtubeChannelResultsQuery=$('youtubeSearchInput').value.trim();youtubeSearchMode='channelVideos';$('youtubeVideosTab').classList.remove('active');$('youtubeChannelsTab').classList.add('active');$('youtubeSearchInput').value='';$('youtubeSearchInput').placeholder=title;await searchYouTubeVideos('channelVideos',channelId)}
  async function playYouTubeFromCatalog(id){
  if(!activeRoomId)return;
