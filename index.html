@@ -344,6 +344,11 @@ $('signupBtn').onclick=async()=>{
   }
   return say('signupMsg','Ошибка: '+error.message);
  }
+ if(data.user&&Array.isArray(data.user.identities)&&data.user.identities.length===0){
+  $('loginEmail').value=email;$('authSignupPanel').classList.add('hidden');$('authLoginPanel').classList.remove('hidden');
+  say('loginMsg','Этот аккаунт уже зарегистрирован. Войди по почте и паролю или восстанови пароль.');
+  $('loginEmail').focus();return;
+ }
  if(data.session){say('signupMsg','Аккаунт создан! Заходим…');await showSession(data.session)}
  else{say('signupMsg','Аккаунт создан. Для первого входа подтверди адрес электронной почты по ссылке из письма, затем вернись сюда и войди.')}
 };
