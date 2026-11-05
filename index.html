@@ -13,6 +13,23 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 .room-top-actions{display:flex;align-items:center;gap:7px}.queue-action-btn{min-width:38px;padding:8px 10px!important;font-size:18px!important;line-height:1}.room-top-icons{display:flex;flex-direction:column;align-items:center;gap:3px}.room-top-icons .viewers-eye{min-width:34px;padding:4px 8px!important;line-height:1.1}.viewers-eye{min-width:38px;padding:8px 10px!important;font-size:17px!important}.viewers-overlay{position:fixed;inset:0;z-index:10020;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px}.viewers-overlay.hidden{display:none}.viewers-card{width:100%;max-width:380px;max-height:min(70vh,520px);overflow:auto;background:var(--panel,#171923);border:1px solid var(--line);border-radius:17px;padding:15px;box-shadow:0 16px 48px #0008}.viewers-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.viewers-list{display:grid;gap:9px}.viewer-row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:11px;background:#ffffff08}.viewer-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:#ffffff15;flex:none}.viewer-name{font-size:14px;font-weight:650}.viewer-you{font-size:11px;color:var(--muted);margin-left:auto}.room-workspace{display:grid;gap:10px;margin-top:8px}.room-chat-panel{padding:12px;margin:0}.voice-chat-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}.voice-toggle-btn{padding:8px 11px;font-size:12px;white-space:nowrap}.voice-chat-status{font-size:11px;flex:1;min-width:110px}.room-chat-panel .chatbox{max-height:240px;min-height:110px;overflow:auto;margin:10px 0}.room-chat-panel .row{gap:8px}.room-exit-row{display:flex;justify-content:flex-end;padding:4px 0 2px}.room-exit-btn{width:42px;height:42px;padding:0;font-size:22px;border-radius:13px;color:#ff9eaa;border-color:#ff9eaa55}.room-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}.room-topbar button{padding:9px 12px;font-size:13px}.room-code-compact{font-size:13px;white-space:nowrap}.room-video-screen{width:100%;max-height: min(58vh,520px);aspect-ratio:16/9}.room-video-controls{display:flex;gap:7px;align-items:center}.room-video-controls .field{flex:1;min-width:0;margin:0;padding:10px}.room-video-controls button{padding:10px 12px;font-size:13px;white-space:nowrap}.room-help{margin:0;font-size:11px}.room-fold{border:1px solid var(--line);border-radius:13px;background:#ffffff05;overflow:hidden}.room-fold summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:700;display:flex;align-items:center;gap:8px}.room-fold summary::-webkit-details-marker{display:none}.room-fold summary:after{content:"＋";margin-left:auto;color:var(--muted)}.room-fold[open] summary:after{content:"−"}.room-fold-hint{font-size:11px;color:var(--muted);font-weight:400;margin-left:auto}.room-fold summary:after{margin-left:0}.room-fold .panel,.room-fold .voice-panel{margin:0;border:0;border-radius:0;padding:12px;background:transparent}.room-fold .muted{font-size:12px}.room-bottom{padding:0 12px 12px;margin:0}.room-bottom h4{margin:8px 0}.room-bottom .chatbox{max-height:220px}@media(max-width:520px){.room-topbar{gap:5px}.room-topbar button{padding:8px 9px;font-size:12px}.room-code-compact{font-size:12px}.room-video-controls{gap:5px}.room-video-controls .field{font-size:12px;padding:9px 7px}.room-video-controls button{font-size:11px;padding:9px 8px}.room-video-screen{max-height:42vh}.room-help{font-size:10px}.room-fold summary{padding:11px 12px}}
 .room-msg{display:flex;align-items:flex-start;gap:9px;padding:9px 10px}.room-msg-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:linear-gradient(135deg,#ff70ae,#9b83ff);color:#171321;font-size:12px;font-weight:800}.room-msg-body{min-width:0;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere}.room-msg-body b{font-size:12px;color:#d5b8ff}.room-msg-body span{font-size:13px;color:var(--text)}
 .room-msg-avatar{border:0;padding:0;cursor:pointer;outline-offset:3px}.room-msg-avatar:focus-visible{outline:2px solid var(--violet)}.friend-profile-actions{display:grid;gap:9px;margin-top:14px}.friend-profile-actions .friend-profile-message{margin-top:0}
+
+/* Mandora helper: quiet floating entry point and compact chat */
+.mandora-launch{position:fixed;left:14px;bottom:16px;z-index:80;border:1px solid rgba(155,134,255,.42);border-radius:999px;padding:9px 13px;background:rgba(25,22,39,.96);color:var(--text);box-shadow:0 5px 22px #0005;font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(12px)}
+.mandora-launch:active{transform:scale(.97)}
+.mandora-window{position:fixed;left:14px;bottom:68px;z-index:81;width:min(340px,calc(100vw - 28px));height:min(430px,calc(100dvh - 100px));display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 14px 50px #0009}
+.mandora-window.hidden{display:none}
+.mandora-head{display:flex;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.mandora-avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#ff70ae,#9b86ff);color:#171321;font-weight:900}
+.mandora-head-copy{min-width:0;flex:1}.mandora-head-copy strong{display:block;font-size:14px}.mandora-head-copy span{display:block;color:var(--muted);font-size:11px}
+.mandora-close{border:0;background:transparent;color:var(--muted);font-size:20px;padding:4px 7px;cursor:pointer}
+.mandora-messages{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:9px}
+.mandora-bubble{max-width:90%;padding:9px 11px;border-radius:13px;background:var(--panel2);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.mandora-bubble.user{align-self:flex-end;background:#493b70}.mandora-bubble.bot{align-self:flex-start}
+.mandora-form{display:flex;gap:7px;padding:10px;border-top:1px solid var(--line)}
+.mandora-form input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);padding:10px;font-size:13px}
+.mandora-form button{border:0;border-radius:12px;padding:0 13px;background:var(--violet);color:#171321;font-weight:800}
+@media(max-width:520px){.mandora-launch{bottom:12px;left:10px}.mandora-window{left:10px;bottom:60px;width:calc(100vw - 20px);height:min(410px,calc(100dvh - 82px))}}
 </style></head>
 <body><div class="wrap">
 <header class="top"><button class="secondary menu-btn hidden" id="settingsBtn" aria-label="Открыть меню" title="Меню"><span></span><span></span><span></span></button><div class="brand"><div class="logo">L&A</div>Watch</div><div class="status" id="status">● подключение</div></header>
@@ -75,6 +92,17 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
 </section>
 <div class="notice" id="globalMsg">Подключаем L&A Watch…</div>
 </main></div>
+
+<button type="button" class="mandora-launch" id="mandoraOpen" aria-label="Открыть помощь Мандоры">✦ Мандора · Помощь</button>
+<section class="mandora-window hidden" id="mandoraWindow" role="dialog" aria-label="Помощник Мандора">
+  <div class="mandora-head">
+    <div class="mandora-avatar">М</div>
+    <div class="mandora-head-copy"><strong>Мандора</strong><span>Помогу разобраться с L&A Watch</span></div>
+    <button type="button" class="mandora-close" id="mandoraClose" aria-label="Закрыть">×</button>
+  </div>
+  <div class="mandora-messages" id="mandoraMessages" aria-live="polite"><div class="mandora-bubble bot">Привет! ❤️ Подскажу, как создать комнату, пригласить друзей, включить звук или пользоваться очередью видео. Что нужно?</div></div>
+  <form class="mandora-form" id="mandoraForm"><input id="mandoraInput" maxlength="1600" placeholder="Напиши, с чем помочь…" autocomplete="off"><button type="submit" id="mandoraSend">➤</button></form>
+</section>
 <script>
 const SUPABASE_URL='https://jtkuhrytrikgkqephjah.supabase.co';
 const SUPABASE_KEY='sb_publishable_QoWJI1f7iAEH4ZWl0nX6qA_qHGe5dit';
@@ -597,6 +625,28 @@ $('roomQueueOverlay').addEventListener('click',e=>{if(e.target===$('roomQueueOve
 $('sendRoomMessage').onclick=async()=>{const content=$('roomChatText').value.trim();if(!content||!activeRoomId)return;const {data:p}=await db.from('profiles').select('username').eq('id',currentUser.id).maybeSingle();const {error}=await db.from('messages').insert({room_id:activeRoomId,username:p?.username||'user',content});if(error)roomSay('Ошибка отправки: '+error.message);else $('roomChatText').value=''};
 $('roomChatText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendRoomMessage').click()});
 $('leaveRoomBtn').onclick=async()=>{await leaveVoice();if(roomChannel)await db.removeChannel(roomChannel);roomChannel=null;activeRoomId=null;activeRoomCode=null;roomVideo=null;try{localStorage.removeItem('lawatch:lastRoom')}catch(e){};$('roomWorkspace').classList.add('hidden');$('roomChat').innerHTML='';roomSay('Ты покинул комнату.')};
+
+
+function mandoraBubble(role,message){const el=document.createElement('div');el.className='mandora-bubble '+role;el.textContent=message;$('mandoraMessages').append(el);$('mandoraMessages').scrollTop=$('mandoraMessages').scrollHeight;return el}
+$('mandoraOpen').addEventListener('click',()=>{$('mandoraWindow').classList.remove('hidden');$('mandoraInput').focus()});
+$('mandoraClose').addEventListener('click',()=>$('mandoraWindow').classList.add('hidden'));
+$('mandoraForm').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const message=$('mandoraInput').value.trim();
+  if(!message)return;
+  mandoraBubble('user',message);$('mandoraInput').value='';
+  if(!currentUser){mandoraBubble('bot','Чтобы я могла помочь в чате, сначала войди в свой аккаунт L&A Watch ❤️');return}
+  const send=$('mandoraSend');send.disabled=true;
+  const waiting=mandoraBubble('bot','Секундочку, думаю…');
+  try{
+    const response=await fetch('https://mindora-chatbot.onrender.com/watch/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,userId:currentUser.id})});
+    const data=await response.json();
+    waiting.remove();
+    if(!response.ok)throw new Error(data.error||'Не получилось получить ответ');
+    mandoraBubble('bot',data.answer||'Пока не знаю, что ответить. Попробуй спросить иначе ❤️');
+  }catch(error){waiting.remove();mandoraBubble('bot',error.message||'Не удалось связаться с Мандорой. Попробуй чуть позже ❤️')}
+  finally{send.disabled=false;$('mandoraInput').focus()}
+});
 
 db.auth.onAuthStateChange((_event,session)=>{setTimeout(()=>showSession(session),0)});
 (async()=>{const {data}=await db.auth.getSession();await showSession(data.session);if(!data.session)say('globalMsg','L&A Watch готов к регистрации и входу.');})();
