@@ -681,8 +681,8 @@ function setCatalogProvider(provider){
   $('youtubeSearchStatus').textContent='Ищи открытые видео RUTUBE без входа в аккаунт.';
  }else{
   $('youtubeSearchInput').placeholder='Что найти в VK Видео?';
-  $('youtubeSearchStatus').textContent='Поиск открытых видео VK без входа.';
-  $('videoProviderNote').textContent='VK открывает публичную страницу поиска. Выбери открытый ролик, скопируй ссылку и вставь её в поле ссылки комнаты. Закрытые и ограниченные видео могут не открываться.';
+  $('youtubeSearchStatus').textContent='Ищем публичные видео VK через открытый поисковый индекс.';
+  $('videoProviderNote').textContent='Показываем найденные публичные видео VK прямо здесь. Выдача зависит от поискового индекса; закрытые и неиндексируемые ролики могут не попасть в результаты.';
  }
 }
 $('providerYoutubeTab').onclick=()=>setCatalogProvider('youtube');
