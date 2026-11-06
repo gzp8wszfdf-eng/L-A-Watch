@@ -3,7 +3,9 @@ export async function onRequest(context) {
   if (request.method !== "GET") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
 
@@ -12,7 +14,9 @@ export async function onRequest(context) {
   if (q.length < 2) {
     return new Response(JSON.stringify({ error: "Введите минимум 2 символа для поиска." }), {
       status: 400,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
 
@@ -37,7 +41,9 @@ export async function onRequest(context) {
           : "RUTUBE временно не отвечает. Попробуй позже."
       }), {
         status: 502,
-        headers: { "content-type": "application/json", "cache-control": "no-store" }
+        headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin", "cache-control": "no-store" }
       });
     }
 
@@ -85,13 +91,17 @@ export async function onRequest(context) {
       status: 200,
       headers: {
         "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin",
         "cache-control": "public, max-age=45"
       }
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Не удалось связаться с поиском RUTUBE." }), {
       status: 502,
-      headers: { "content-type": "application/json", "cache-control": "no-store" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin", "cache-control": "no-store" }
     });
   }
 }
