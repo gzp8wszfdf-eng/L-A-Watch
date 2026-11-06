@@ -193,18 +193,18 @@ export default function Watch() {
     say('Следующий ролик из очереди запущен.');
   };
 
-  const addToQueue=async()=>{
-    if(!activeRoom||!user||!videoInput.trim())return;
+  const enqueueVideo=async(url:string)=>{
+    if(!activeRoom||!user||!url.trim())return;
     if(isGuest){say('Гостям доступен просмотр, но добавлять видео в очередь могут только зарегистрированные пользователи.');return}
-    const url=videoInput.trim();
-    if(!/^https?:\/\//i.test(url)){say('Вставь полную ссылку на видео.');return}
+    if(!/^https?:\/\//i.test(url)){say('Нужна полная ссылка на видео.');return}
     setQueueBusy(true);
-    const {data,error}=await supabase.from('room_video_queue').insert({room_id:activeRoom.id,video_url:url,added_by:user.id}).select('id,room_id,video_url,added_by,created_at').single();
+    const {data,error}=await supabase.from('room_video_queue').insert({room_id:activeRoom.id,video_url:url.trim(),added_by:user.id}).select('id,room_id,video_url,added_by,created_at').single();
     setQueueBusy(false);
     if(error){say('Не удалось добавить видео в очередь: '+error.message);return}
-    setVideoQueue(prev=>[...prev,data].sort((a,b)=>a.created_at.localeCompare(b.created_at)));
+    setVideoQueue(prev=>prev.some(x=>x.id===data.id)?prev:[...prev,data].sort((a,b)=>a.created_at.localeCompare(b.created_at)));
     say('Видео добавлено в общую очередь.');
   };
+  const addToQueue=()=>enqueueVideo(videoInput.trim());
 
   const removeQueueItem=async(item:QueueItem)=>{
     if(isGuest)return;
@@ -366,11 +366,16 @@ export default function Watch() {
     }catch(err){setSearchError(err instanceof Error?err.message:'Не удалось выполнить поиск.')}
     finally{setSearchBusy(false)}
   };
-  const chooseSearchVideo=async(url:string)=>{
+  const chooseSearchVideo=async(url:string,action:'play'|'queue')=>{
     if(!activeRoom)return;
+    if(action==='queue'){
+      await enqueueVideo(url);
+      if(!isGuest){setSearchOpen(false);setSearchQuery('');setSearchResults([])}
+      return;
+    }
     const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
     if(error){say('Не удалось отправить видео: '+error.message);return}
-    setVideoUrl(url);setVideoInput(url);setPlaybackPlaying(true);setPlaybackPosition(0);setSearchOpen(false);setSearchQuery('');setSearchResults([]);say('Видео отправлено всем участникам комнаты.');
+    autoAdvanceRef.current=false;setVideoUrl(url);setVideoInput(url);setPlaybackPlaying(true);setPlaybackPosition(0);setSearchOpen(false);setSearchQuery('');setSearchResults([]);say('Видео отправлено всем участникам комнаты.');
   };
   const signOut=async()=>{await supabase.auth.signOut();setActiveRoom(null);setRooms([]);say('Ты вышел из аккаунта.')};
   const embed=useMemo(()=>videoEmbed(videoUrl),[videoUrl]);
@@ -417,7 +422,7 @@ export default function Watch() {
         <div className="watch-live-room-list">{rooms.length?rooms.map(r=><div className="watch-live-room" key={r.id}><div><b>{r.title}</b><small>{r.visibility==='public'?'Открытая комната':'Закрытая комната'}</small></div><button className="outline" onClick={()=>enterRoom(r)} disabled={busy}>Войти <DoorOpen size={14}/></button></div>):<div className="watch-empty"><Users size={24}/><b>Комнат пока нет</b><small>Создай свою или обнови список позже.</small></div>}</div>
       </div>
     </>}
-    {searchOpen&&<div className="watch-search-overlay"><div className="watch-search-modal"><div className="watch-search-title"><div><b>Поиск видео</b><small>{searchProvider==="youtube"?"YouTube":"RuTube"}</small></div><button type="button" onClick={()=>setSearchOpen(false)} aria-label="Закрыть"><X/></button></div><div className="watch-search-tabs"><button className={searchProvider==="youtube"?"selected":""} onClick={()=>{setSearchProvider("youtube");setSearchResults([]);setSearchError("")}}><Youtube size={16}/> YouTube</button><button className={searchProvider==="rutube"?"selected":""} onClick={()=>{setSearchProvider("rutube");setSearchResults([]);setSearchError("")}}><Film size={16}/> RuTube</button></div><form className="watch-search-form" onSubmit={searchVideos}><input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Название фильма или видео…"/><button className="primary" disabled={searchBusy}><Search size={17}/></button></form>{searchBusy&&<p className="watch-search-state">Ищем видео…</p>}{searchError&&<p className="watch-search-state">{searchError}</p>}<div className="watch-search-results">{searchResults.map((item:any)=><button className="watch-search-result" key={item.id} onClick={()=>chooseSearchVideo(item.url)}>{item.thumbnail?<img src={item.thumbnail} alt=""/>:<div className="watch-search-thumb"><Play/></div>}<span><b>{item.title}</b><small>{item.author}</small></span><Play size={17}/></button>)}</div></div></div>}
+    {searchOpen&&<div className="watch-search-overlay"><div className="watch-search-modal"><div className="watch-search-title"><div><b>Поиск видео</b><small>{searchProvider==="youtube"?"YouTube":"RuTube"}</small></div><button type="button" onClick={()=>setSearchOpen(false)} aria-label="Закрыть"><X/></button></div><div className="watch-search-tabs"><button className={searchProvider==="youtube"?"selected":""} onClick={()=>{setSearchProvider("youtube");setSearchResults([]);setSearchError("")}}><Youtube size={16}/> YouTube</button><button className={searchProvider==="rutube"?"selected":""} onClick={()=>{setSearchProvider("rutube");setSearchResults([]);setSearchError("")}}><Film size={16}/> RuTube</button></div><form className="watch-search-form" onSubmit={searchVideos}><input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Название фильма или видео…"/><button className="primary" disabled={searchBusy}><Search size={17}/></button></form>{searchBusy&&<p className="watch-search-state">Ищем видео…</p>}{searchError&&<p className="watch-search-state">{searchError}</p>}<div className="watch-search-results">{searchResults.map((item:any)=><div className="watch-search-result" key={item.id}>{item.thumbnail?<img src={item.thumbnail} alt=""/>:<div className="watch-search-thumb"><Play/></div>}<span className="watch-search-result-info"><b>{item.title}</b><small>{item.author}</small><span className="watch-search-result-actions"><button type="button" onClick={()=>chooseSearchVideo(item.url,'play')}><Play size={13}/> Открыть</button>{!isGuest&&<button type="button" disabled={queueBusy} onClick={()=>chooseSearchVideo(item.url,'queue')}><Plus size={13}/> В очередь</button>}</span></span></div>)}</div></div></div>}
     {notice&&<div className="watch-notice"><span>{notice}</span><button onClick={()=>setNotice('')}><X size={14}/></button></div>}
   </section>;
 }
