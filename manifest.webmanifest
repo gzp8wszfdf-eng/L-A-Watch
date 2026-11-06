@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "L&A — общение и совместный просмотр",
+  "short_name": "L&A",
+  "description": "Общайтесь и смотрите видео вместе с друзьями",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0b12",
+  "theme_color": "#101019",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

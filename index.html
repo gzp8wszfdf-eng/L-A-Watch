@@ -181,6 +181,14 @@ body.chat-open{overflow:hidden!important}body.chat-open .wrap>header,body.chat-o
  #youtubeSearchResults .result{grid-template-columns:minmax(0,38%) minmax(0,1fr)!important;gap:7px 9px!important}
 }
 </style>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="L&A">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
 </head>
 <body><div class="wrap">
 <header class="top"><button class="secondary menu-btn hidden" id="settingsBtn" aria-label="Открыть меню" title="Меню"><span></span><span></span><span></span></button><div class="brand"><div class="logo">L&A</div>Watch</div><div class="status" id="status">● подключение</div></header>
@@ -1086,5 +1094,11 @@ $('mandoraForm').addEventListener('submit',async event=>{
 
 db.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){setTimeout(async()=>{const next=prompt('Придумай новый пароль (минимум 6 символов):');if(next===null)return;if(next.length<6){alert('Пароль должен содержать минимум 6 символов. Открой письмо и перейди по ссылке ещё раз.');return}const again=prompt('Повтори новый пароль:');if(again===null)return;if(next!==again){alert('Пароли не совпадают. Открой письмо и перейди по ссылке ещё раз.');return}const {error}=await db.auth.updateUser({password:next});if(error)alert('Не удалось сменить пароль: '+error.message);else alert('Пароль успешно изменён! Теперь можно входить с новым паролем.');},250)}setTimeout(()=>showSession(session),0)});
 (async()=>{const {data}=await db.auth.getSession();await showSession(data.session);if(!data.session)say('globalMsg','L&A Watch готов к регистрации и входу.');})();
-</script></body></html>
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body></html>
 <!-- Cloudflare Pages redeploy trigger -->
