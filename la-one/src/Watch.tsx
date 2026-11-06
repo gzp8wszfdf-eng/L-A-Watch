@@ -175,7 +175,12 @@ export default function Watch() {
     if(!activeRoom||!user||isGuest||autoAdvanceRef.current)return;
     autoAdvanceRef.current=true;
     const next=queueRef.current[0];
-    if(!next){setPlaybackPlaying(false);return}
+    if(!next){
+      setPlaybackPlaying(false);
+      const current=Math.max(0,ytPlayerRef.current?.getCurrentTime()||playbackPosition);
+      await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:videoUrl,video_position:Math.floor(current),is_playing:false,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
+      return;
+    }
     const {data:claimed,error:claimError}=await supabase.from('room_video_queue').delete().eq('id',next.id).select('id');
     if(claimError){autoAdvanceRef.current=false;say('Не удалось взять следующий ролик из очереди: '+claimError.message);return}
     if(!claimed?.length)return;
@@ -219,6 +224,7 @@ export default function Watch() {
   };
 
   useEffect(()=>{
+    autoAdvanceRef.current=false;
     ytPlayerRef.current=null;
     setPlayerReady(false);
     if(!videoUrl.toLowerCase().includes('youtu') || !playerRef.current)return;
