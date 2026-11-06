@@ -74,6 +74,7 @@ export default function Watch() {
   const playerRef=useRef<HTMLIFrameElement|null>(null);
   const ytPlayerRef=useRef<YouTubePlayer|null>(null);
   const applyingRemoteRef=useRef(false);
+  const lastRemotePlaybackUpdateRef=useRef('');
   const [searchOpen,setSearchOpen]=useState(false);
   const [searchProvider,setSearchProvider]=useState<'youtube'|'rutube'>('youtube');
   const [searchQuery,setSearchQuery]=useState('');
@@ -335,7 +336,42 @@ export default function Watch() {
         }
       })
       .subscribe();
-    return ()=>{supabase.removeChannel(channel)};
+
+    // Realtime is the primary transport. This lightweight fallback catches missed
+    // Postgres change events (especially quick seek/pause updates on mobile).
+    let pollBusy=false;
+    const poll=window.setInterval(async()=>{
+      if(pollBusy)return;
+      pollBusy=true;
+      try{
+        const {data:state}=await supabase.from('playback_state')
+          .select('room_id,video_url,video_position,is_playing,updated_at,client_id')
+          .eq('room_id',activeRoom.id).maybeSingle();
+        if(state?.video_url && state.client_id!==clientId && state.updated_at &&
+          state.updated_at!==lastRemotePlaybackUpdateRef.current){
+          lastRemotePlaybackUpdateRef.current=state.updated_at;
+          const changedVideo=state.video_url!==videoUrl;
+          setVideoUrl(state.video_url);setVideoInput(state.video_url);
+          setPlaybackPlaying(!!state.is_playing);
+          setPlaybackPosition(Number(state.video_position)||0);
+          if(!changedVideo && state.video_url.toLowerCase().includes('youtu')){
+            const target=Math.max(0,Number(state.video_position)||0);
+            const apply=()=>{
+              const player=ytPlayerRef.current;
+              if(!player)return;
+              applyingRemoteRef.current=true;
+              if(Math.abs(player.getCurrentTime()-target)>1.5)player.seekTo(target,true);
+              if(state.is_playing)player.playVideo();else player.pauseVideo();
+              window.setTimeout(()=>{applyingRemoteRef.current=false},1000);
+            };
+            apply();
+            window.setTimeout(apply,500);
+          }
+        }
+      }catch{}
+      finally{pollBusy=false}
+    },1200);
+    return ()=>{window.clearInterval(poll);supabase.removeChannel(channel)};
   },[activeRoom?.id,videoUrl]);
 
   const authSubmit=async(e:FormEvent)=>{
