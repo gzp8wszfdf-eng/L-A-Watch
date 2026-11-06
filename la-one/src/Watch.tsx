@@ -239,7 +239,7 @@ export default function Watch() {
             ytPlayerRef.current=event.target;
             setPlayerReady(true);
             if(playbackPosition>0)event.target.seekTo(playbackPosition,true);
-            if(!playbackPlaying)event.target.pauseVideo();
+            if(playbackPlaying)event.target.playVideo();else event.target.pauseVideo();
             poll=window.setInterval(()=>{
               if(!cancelled && ytPlayerRef.current){
                 const time=ytPlayerRef.current.getCurrentTime();
