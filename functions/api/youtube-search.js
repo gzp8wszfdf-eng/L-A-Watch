@@ -3,7 +3,9 @@ export async function onRequest(context) {
   if (request.method !== "GET") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
 
@@ -11,7 +13,9 @@ export async function onRequest(context) {
   if (!key) {
     return new Response(JSON.stringify({ error: "YouTube API key is not configured." }), {
       status: 500,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
 
@@ -23,13 +27,17 @@ export async function onRequest(context) {
   if (mode === "channelVideos" && !channelId) {
     return new Response(JSON.stringify({ error: "Channel ID is required." }), {
       status: 400,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
   if (!q && mode !== "channelVideos") {
     return new Response(JSON.stringify({ error: "Search query is required." }), {
       status: 400,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
 
@@ -47,13 +55,17 @@ export async function onRequest(context) {
       status: response.status,
       headers: {
         "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin",
         "cache-control": "public, max-age=60"
       }
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: "YouTube search request failed." }), {
       status: 502,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json",
+        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
+        "vary": "Origin" }
     });
   }
 }
