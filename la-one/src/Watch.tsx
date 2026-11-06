@@ -281,6 +281,25 @@ export default function Watch() {
     return ()=>{cancelled=true;if(poll)window.clearInterval(poll);ytPlayerRef.current=null;setPlayerReady(false)};
   },[videoUrl]);
 
+  // Rutube сообщает об окончании через postMessage: player:playComplete.
+  useEffect(()=>{
+    if(!videoUrl.toLowerCase().includes('rutube') || !playerRef.current)return;
+    const frame=playerRef.current;
+    const expectedOrigin=new URL(frame.src).origin;
+    const onRutubeMessage=(event:MessageEvent)=>{
+      if(event.source!==frame.contentWindow || event.origin!==expectedOrigin)return;
+      let message:any=event.data;
+      if(typeof message==='string'){
+        try{message=JSON.parse(message)}catch{return}
+      }
+      if(message?.type==='player:playComplete'){
+        void advanceQueueRef.current();
+      }
+    };
+    window.addEventListener('message',onRutubeMessage);
+    return ()=>window.removeEventListener('message',onRutubeMessage);
+  },[videoUrl]);
+
   useEffect(()=>{
     if(!activeRoom)return;
     const channel=supabase.channel('one-watch-'+activeRoom.id)
