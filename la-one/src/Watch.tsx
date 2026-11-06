@@ -18,7 +18,7 @@ function videoEmbed(url: string) {
       return id ? 'https://www.youtube-nocookie.com/embed/' + id : '';
     }
     if (u.hostname.includes('rutube.ru')) {
-      const id = u.pathname.match(/(?:video|play\\/embed)\\/([a-zA-Z0-9]+)/)?.[1];
+      const id = u.pathname.match(/(?:video|play\/embed)\/([a-zA-Z0-9]+)/)?.[1];
       return id ? 'https://rutube.ru/play/embed/' + id : '';
     }
     return '';
@@ -163,7 +163,7 @@ export default function Watch() {
   const setVideo=async(e:FormEvent)=>{
     e.preventDefault();if(!activeRoom||!videoInput.trim())return;
     const url=videoInput.trim();
-    if(!/^https?:\\/\\//i.test(url)){say('Вставь полную ссылку, начинающуюся с https://');return}
+    if(!/^https?:\/\//i.test(url)){say('Вставь полную ссылку, начинающуюся с https://');return}
     const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
     if(error){say('Не удалось отправить видео: '+error.message);return}
     setVideoUrl(url);say('Видео отправлено всем участникам комнаты.');
