@@ -193,16 +193,17 @@ export default function Watch() {
     say('Следующий ролик из очереди запущен.');
   };
 
-  const enqueueVideo=async(url:string)=>{
-    if(!activeRoom||!user||!url.trim())return;
-    if(isGuest){say('Гостям доступен просмотр, но добавлять видео в очередь могут только зарегистрированные пользователи.');return}
-    if(!/^https?:\/\//i.test(url)){say('Нужна полная ссылка на видео.');return}
+  const enqueueVideo=async(url:string):Promise<boolean>=>{
+    if(!activeRoom||!user||!url.trim())return false;
+    if(isGuest){say('Гостям доступен просмотр, но добавлять видео в очередь могут только зарегистрированные пользователи.');return false}
+    if(!/^https?:\/\//i.test(url)){say('Нужна полная ссылка на видео.');return false}
     setQueueBusy(true);
     const {data,error}=await supabase.from('room_video_queue').insert({room_id:activeRoom.id,video_url:url.trim(),added_by:user.id}).select('id,room_id,video_url,added_by,created_at').single();
     setQueueBusy(false);
-    if(error){say('Не удалось добавить видео в очередь: '+error.message);return}
+    if(error){say('Не удалось добавить видео в очередь: '+error.message);return false}
     setVideoQueue(prev=>prev.some(x=>x.id===data.id)?prev:[...prev,data].sort((a,b)=>a.created_at.localeCompare(b.created_at)));
     say('Видео добавлено в общую очередь.');
+    return true;
   };
   const addToQueue=()=>enqueueVideo(videoInput.trim());
 
@@ -369,8 +370,8 @@ export default function Watch() {
   const chooseSearchVideo=async(url:string,action:'play'|'queue')=>{
     if(!activeRoom)return;
     if(action==='queue'){
-      await enqueueVideo(url);
-      if(!isGuest){setSearchOpen(false);setSearchQuery('');setSearchResults([])}
+      const added=await enqueueVideo(url);
+      if(added){setSearchOpen(false);setSearchQuery('');setSearchResults([])}
       return;
     }
     const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
