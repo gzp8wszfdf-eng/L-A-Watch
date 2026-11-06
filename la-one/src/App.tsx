@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {Home,MessageCircle,PlayCircle,Users,UserRound,Bell,Search,Plus,Heart,MessageSquare,Send,Bookmark,MoreHorizontal,Sparkles,Settings} from 'lucide-react';
 type Page='home'|'chats'|'watch'|'community'|'clips'|'profile'|'ai'|'notifications'|'settings';
-const nav=[{id:'home' as Page,label:'Главная',icon:Home},{id:'chats' as Page,label:'Чаты',icon:MessageCircle},{id:'watch' as Page,label:'Watch',icon:PlayCircle},{id:'clips' as Page,label:'Clips',icon:PlayCircle},{id:'profile' as Page,label:'Профиль',icon:UserRound}];
+const nav=[{id:'home' as Page,label:'Главная',icon:Home},{id:'watch' as Page,label:'Watch',icon:PlayCircle},{id:'chats' as Page,label:'Чаты',icon:MessageCircle},{id:'clips' as Page,label:'Clips',icon:PlayCircle},{id:'profile' as Page,label:'Профиль',icon:UserRound}];
 const stories=[['Твоя история','+',true],['Аня','А'],['Марк','М'],['Дима','Д'],['София','С'],['Илья','И']] as const;
 const posts=[{name:'Аня Миронова',handle:'@anya.m',time:'18 мин назад',initial:'А',tone:'cyan',text:'Нашла невероятное место для вечерних прогулок ✨ Кто со мной на выходных?',tag:'#вечер #город',art:'city',artTitle:'Город не спит'},{name:'L&A Community',handle:'@la.community',time:'1 час назад',initial:'L',tone:'violet',text:'Добро пожаловать в новое пространство L&A One. Здесь мы делимся идеями, знакомимся и создаём вместе 💜',tag:'#LAOne #community',art:'aurora',artTitle:'Создавай своё'},{name:'Марк',handle:'@markx',time:'3 часа назад',initial:'М',tone:'pink',text:'Собрали подборку фильмов на вечер. Уже добавил всё в нашу Watch-комнату 🎬',tag:'#watchparty',art:'film',artTitle:'Вечер кино'}];
 export default function App(){
