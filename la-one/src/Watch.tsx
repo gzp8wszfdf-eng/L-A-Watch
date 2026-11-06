@@ -174,23 +174,40 @@ export default function Watch() {
   advanceQueueRef.current=async()=>{
     if(!activeRoom||!user||isGuest||autoAdvanceRef.current)return;
     autoAdvanceRef.current=true;
-    const next=queueRef.current[0];
+    // Читаем следующий ролик непосредственно из БД: локальная очередь может отставать от Realtime.
+    const {data:next,error:readError}=await supabase.from('room_video_queue')
+      .select('id,room_id,video_url,added_by,created_at')
+      .eq('room_id',activeRoom.id).order('created_at',{ascending:true}).limit(1).maybeSingle();
+    if(readError){
+      autoAdvanceRef.current=false;
+      say('Не удалось проверить очередь: '+readError.message);
+      return;
+    }
     if(!next){
       setPlaybackPlaying(false);
       const current=Math.max(0,ytPlayerRef.current?.getCurrentTime()||playbackPosition);
-      await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:videoUrl,video_position:Math.floor(current),is_playing:false,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
+      const {error}=await supabase.from('playback_state').upsert({
+        room_id:activeRoom.id,video_url:videoUrl,video_position:Math.floor(current),
+        is_playing:false,updated_at:new Date().toISOString(),client_id:clientId
+      },{onConflict:'room_id'});
+      if(error)say('Не удалось остановить воспроизведение: '+error.message);
       return;
     }
-    const {data:claimed,error:claimError}=await supabase.from('room_video_queue').delete().eq('id',next.id).select('id');
-    if(claimError){autoAdvanceRef.current=false;say('Не удалось взять следующий ролик из очереди: '+claimError.message);return}
-    if(!claimed?.length)return;
-    const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:next.video_url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
-    if(error){
-      await supabase.from('room_video_queue').insert({id:next.id,room_id:next.room_id,video_url:next.video_url,added_by:next.added_by,created_at:next.created_at});
-      autoAdvanceRef.current=false;say('Следующий ролик не удалось запустить: '+error.message);return;
+    // Сначала публикуем новое видео. Удаляем элемент очереди только после успешной записи.
+    const {error:playError}=await supabase.from('playback_state').upsert({
+      room_id:activeRoom.id,video_url:next.video_url,video_position:0,
+      is_playing:true,updated_at:new Date().toISOString(),client_id:clientId
+    },{onConflict:'room_id'});
+    if(playError){
+      autoAdvanceRef.current=false;
+      say('Следующий ролик не удалось запустить: '+playError.message);
+      return;
     }
-    setVideoUrl(next.video_url);setVideoInput(next.video_url);setPlaybackPosition(0);setPlaybackPlaying(true);
-    say('Следующий ролик из очереди запущен.');
+    setVideoUrl(next.video_url);setVideoInput(next.video_url);
+    setPlaybackPosition(0);setPlaybackPlaying(true);
+    const {error:removeError}=await supabase.from('room_video_queue').delete().eq('id',next.id);
+    if(removeError)say('Видео запущено, но не удалось убрать его из очереди: '+removeError.message);
+    else say('Следующий ролик из очереди запущен.');
   };
 
   const enqueueVideo=async(url:string):Promise<boolean>=>{
@@ -216,12 +233,18 @@ export default function Watch() {
 
   const playQueueItem=async(item:QueueItem)=>{
     if(!activeRoom||!user||isGuest){say('Для управления очередью войди в аккаунт.');return}
-    const {data:claimed,error:claimError}=await supabase.from('room_video_queue').delete().eq('id',item.id).select('id');
-    if(claimError){say('Не удалось запустить видео: '+claimError.message);return}
-    if(!claimed?.length)return;
-    const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:item.video_url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
+    // Не удаляем ролик до подтверждения, что он действительно отправлен в общий плеер.
+    const {error}=await supabase.from('playback_state').upsert({
+      room_id:activeRoom.id,video_url:item.video_url,video_position:0,
+      is_playing:true,updated_at:new Date().toISOString(),client_id:clientId
+    },{onConflict:'room_id'});
     if(error){say('Не удалось запустить видео: '+error.message);return}
-    autoAdvanceRef.current=false;setVideoUrl(item.video_url);setVideoInput(item.video_url);setPlaybackPosition(0);setPlaybackPlaying(true);
+    autoAdvanceRef.current=false;
+    setVideoUrl(item.video_url);setVideoInput(item.video_url);
+    setPlaybackPosition(0);setPlaybackPlaying(true);
+    const {error:removeError}=await supabase.from('room_video_queue').delete().eq('id',item.id);
+    if(removeError)say('Видео запущено, но осталось в очереди: '+removeError.message);
+    else say('Видео из очереди запущено.');
   };
 
   useEffect(()=>{
