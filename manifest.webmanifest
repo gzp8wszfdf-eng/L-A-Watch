@@ -1,0 +1,11 @@
+{
+  "name": "L&A Watch",
+  "short_name": "L&A Watch",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b12",
+  "theme_color": "#101019",
+  "icons": [
+    { "src": "/icons/la-watch-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
