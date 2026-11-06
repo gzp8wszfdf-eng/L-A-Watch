@@ -7,6 +7,7 @@ import { ArrowLeft, DoorOpen, LogOut, Plus, RefreshCw, Send, Users, Play, Lock, 
 type Room = { id: string; code: string; title: string; visibility: 'public'|'private'; created_at?: string };
 type Message = { id: string; room_id: string; username: string; content: string; created_at: string };
 type Playback = { room_id: string; video_url: string|null; video_position: number; is_playing: boolean; updated_at?: string; client_id?: string };
+type QueueItem = { id: string; room_id: string; video_url: string; added_by: string; created_at: string };
 type YouTubePlayer = { getCurrentTime:()=>number; seekTo:(seconds:number,allowSeekAhead:boolean)=>void; playVideo:()=>void; pauseVideo:()=>void; getPlayerState:()=>number; destroy?:()=>void };
 declare global { interface Window { YT?: { Player: new (element:HTMLIFrameElement, options:any)=>YouTubePlayer }; onYouTubeIframeAPIReady?: ()=>void } }
 const clientId = Math.random().toString(36).slice(2);
@@ -60,6 +61,10 @@ export default function Watch() {
   const [notice,setNotice]=useState('');
   const [activeRoom,setActiveRoom]=useState<Room|null>(null);
   const [messages,setMessages]=useState<Message[]>([]);
+  const [videoQueue,setVideoQueue]=useState<QueueItem[]>([]);
+  const queueRef=useRef<QueueItem[]>([]);
+  const autoAdvanceRef=useRef(false);
+  const [queueBusy,setQueueBusy]=useState(false);
   const [draft,setDraft]=useState('');
   const [videoUrl,setVideoUrl]=useState('');
   const [videoInput,setVideoInput]=useState('');
@@ -149,15 +154,68 @@ export default function Watch() {
     setBusy(true);say('Подключаемся к комнате…');
     const {data:member,error:memberError}=await supabase.from('room_members').select('room_id').eq('room_id',room.id).eq('user_id',user?.id).maybeSingle();
     if(memberError||!member){setBusy(false);say('Не удалось подтвердить участие в комнате. Войди по коду ещё раз.');return}
-    setActiveRoom(room);setVideoUrl('');setVideoInput('');setMessages([]);
-    const [{data:msgs,error:msgError},{data:playback}]=await Promise.all([
+    setActiveRoom(room);setVideoUrl('');setVideoInput('');setMessages([]);setVideoQueue([]);autoAdvanceRef.current=false;
+    const [{data:msgs,error:msgError},{data:playback},{data:queue,error:queueError}]=await Promise.all([
       supabase.from('messages').select('*').eq('room_id',room.id).order('created_at',{ascending:true}).limit(100),
-      supabase.from('playback_state').select('*').eq('room_id',room.id).maybeSingle()
+      supabase.from('playback_state').select('*').eq('room_id',room.id).maybeSingle(),
+      supabase.from('room_video_queue').select('id,room_id,video_url,added_by,created_at').eq('room_id',room.id).order('created_at',{ascending:true})
     ]);
     if(msgError)say('Комната открыта, но чат не загрузился: '+msgError.message);
     setMessages(msgs||[]);
+    if(queueError)say('Видео открыто, но очередь не загрузилась: '+queueError.message);
+    setVideoQueue(queue||[]);
     if(playback?.video_url){setVideoUrl(playback.video_url);setVideoInput(playback.video_url);setPlaybackPlaying(!!playback.is_playing);setPlaybackPosition(Number(playback.video_position)||0)}
     setBusy(false);say('Ты в комнате. Чат и выбранное видео синхронизируются.');
+  };
+
+  useEffect(()=>{queueRef.current=videoQueue},[videoQueue]);
+
+  const advanceQueueRef=useRef<()=>Promise<void>>(async()=>{});
+  advanceQueueRef.current=async()=>{
+    if(!activeRoom||!user||isGuest||autoAdvanceRef.current)return;
+    autoAdvanceRef.current=true;
+    const next=queueRef.current[0];
+    if(!next){setPlaybackPlaying(false);return}
+    const {data:claimed,error:claimError}=await supabase.from('room_video_queue').delete().eq('id',next.id).select('id');
+    if(claimError){autoAdvanceRef.current=false;say('Не удалось взять следующий ролик из очереди: '+claimError.message);return}
+    if(!claimed?.length)return;
+    const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:next.video_url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
+    if(error){
+      await supabase.from('room_video_queue').insert({id:next.id,room_id:next.room_id,video_url:next.video_url,added_by:next.added_by,created_at:next.created_at});
+      autoAdvanceRef.current=false;say('Следующий ролик не удалось запустить: '+error.message);return;
+    }
+    setVideoUrl(next.video_url);setVideoInput(next.video_url);setPlaybackPosition(0);setPlaybackPlaying(true);
+    say('Следующий ролик из очереди запущен.');
+  };
+
+  const addToQueue=async()=>{
+    if(!activeRoom||!user||!videoInput.trim())return;
+    if(isGuest){say('Гостям доступен просмотр, но добавлять видео в очередь могут только зарегистрированные пользователи.');return}
+    const url=videoInput.trim();
+    if(!/^https?:\\/\\//i.test(url)){say('Вставь полную ссылку на видео.');return}
+    setQueueBusy(true);
+    const {data,error}=await supabase.from('room_video_queue').insert({room_id:activeRoom.id,video_url:url,added_by:user.id}).select('id,room_id,video_url,added_by,created_at').single();
+    setQueueBusy(false);
+    if(error){say('Не удалось добавить видео в очередь: '+error.message);return}
+    setVideoQueue(prev=>[...prev,data].sort((a,b)=>a.created_at.localeCompare(b.created_at)));
+    say('Видео добавлено в общую очередь.');
+  };
+
+  const removeQueueItem=async(item:QueueItem)=>{
+    if(isGuest)return;
+    const {error}=await supabase.from('room_video_queue').delete().eq('id',item.id);
+    if(error){say('Не удалось удалить видео из очереди: '+error.message);return}
+    setVideoQueue(prev=>prev.filter(x=>x.id!==item.id));
+  };
+
+  const playQueueItem=async(item:QueueItem)=>{
+    if(!activeRoom||!user||isGuest){say('Для управления очередью войди в аккаунт.');return}
+    const {data:claimed,error:claimError}=await supabase.from('room_video_queue').delete().eq('id',item.id).select('id');
+    if(claimError){say('Не удалось запустить видео: '+claimError.message);return}
+    if(!claimed?.length)return;
+    const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:item.video_url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
+    if(error){say('Не удалось запустить видео: '+error.message);return}
+    autoAdvanceRef.current=false;setVideoUrl(item.video_url);setVideoInput(item.video_url);setPlaybackPosition(0);setPlaybackPlaying(true);
   };
 
   useEffect(()=>{
@@ -182,6 +240,9 @@ export default function Watch() {
                 if(Number.isFinite(time))setPlaybackPosition(Math.floor(time));
               }
             },1000);
+          },
+          onStateChange:(event:any)=>{
+            if(event.data===0 && !applyingRemoteRef.current)void advanceQueueRef.current();
           }
         }
       });
@@ -196,6 +257,15 @@ export default function Watch() {
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room_id=eq.'+activeRoom.id},payload=>{
         const msg=payload.new as Message;
         setMessages(prev=>prev.some(x=>x.id===msg.id)?prev:[...prev,msg]);
+      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'room_video_queue',filter:'room_id=eq.'+activeRoom.id},payload=>{
+        if(payload.eventType==='INSERT'){
+          const item=payload.new as QueueItem;
+          setVideoQueue(prev=>prev.some(x=>x.id===item.id)?prev:[...prev,item].sort((a,b)=>a.created_at.localeCompare(b.created_at)));
+        } else if(payload.eventType==='DELETE'){
+          const item=payload.old as QueueItem;
+          setVideoQueue(prev=>prev.filter(x=>x.id!==item.id));
+        }
       })
       .on('postgres_changes',{event:'*',schema:'public',table:'playback_state',filter:'room_id=eq.'+activeRoom.id},payload=>{
         const state=payload.new as Playback;
@@ -325,6 +395,8 @@ export default function Watch() {
       <div className="watch-video-frame">{embed?<iframe ref={playerRef} src={embed} title="L&A Watch video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>:<div className="watch-video-empty"><Play size={32}/><b>Добавь видео</b><small>YouTube, RuTube или ссылку на видео</small></div>}</div>
       {videoUrl&&<div className="watch-playback-controls"><button type="button" onClick={()=>seekPlayback(-10)} disabled={!videoUrl.toLowerCase().includes('youtu')||!playerReady}>−10 сек.</button><button type="button" onClick={togglePlayback} disabled={!videoUrl.toLowerCase().includes('youtu')||!playerReady}>{playbackPlaying?'Пауза':'Продолжить'}</button><button type="button" onClick={()=>seekPlayback(10)} disabled={!videoUrl.toLowerCase().includes('youtu')||!playerReady}>+10 сек.</button></div>}
       <div className="watch-search-actions"><button type="button" onClick={()=>{setSearchProvider("youtube");setSearchOpen(true);setSearchError("");setSearchResults([])}}><Youtube size={17}/> Найти на YouTube</button><button type="button" onClick={()=>{setSearchProvider("rutube");setSearchOpen(true);setSearchError("");setSearchResults([])}}><Film size={17}/> Найти на RuTube</button></div><form className="watch-video-form" onSubmit={setVideo}><input value={videoInput} onChange={e=>setVideoInput(e.target.value)} placeholder="Или вставь ссылку на видео"/><button className="primary">▶</button></form>
+      {!isGuest&&<button type="button" className="watch-queue-add" onClick={addToQueue} disabled={queueBusy||!videoInput.trim()}><Plus size={15}/>{queueBusy?'Добавляем…':'Добавить ссылку в очередь'}</button>}
+      <div className="watch-queue-panel"><div className="watch-chat-head">Очередь видео <span>{videoQueue.length}</span></div>{videoQueue.length?videoQueue.map((item,index)=><div className="watch-queue-item" key={item.id}><span className="watch-queue-number">{index+1}</span><span className="watch-queue-url">{item.video_url}</span><button type="button" onClick={()=>playQueueItem(item)} title="Включить"><Play size={15}/></button>{!isGuest&&<button type="button" onClick={()=>removeQueueItem(item)} title="Удалить"><X size={15}/></button>}</div>):<p className="watch-muted">Пока пусто. Добавь ссылку — следующий ролик включится автоматически.</p>}</div>
       <div className="watch-chat-head">Чат комнаты <span>{messages.length}</span></div>
       <div className="watch-chat-list">{messages.map(m=><div className="watch-chat-message" key={m.id}><b>{m.username}</b><span>{m.content}</span></div>)}</div>
       {isGuest?<p className="watch-muted">Гостевой режим: можно смотреть, но нельзя писать.</p>:<form className="watch-chat-form" onSubmit={sendMessage}><input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Сообщение…"/><button aria-label="Отправить"><Send size={17}/></button></form>}
