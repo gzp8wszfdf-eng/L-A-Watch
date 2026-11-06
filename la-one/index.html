@@ -1,1 +1,36 @@
-<!doctype html><html lang="ru"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/><meta name="theme-color" content="#090914"/><meta name="description" content="L&A One — one account, one world."/><title>L&A One</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#090914" />
+    <meta name="description" content="L&A One — one account, one world." />
+    <title>L&A One</title>
+    <style>
+      html,body{margin:0;min-height:100%;background:#090914;color:#f7f7ff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+      #boot-message{max-width:340px;margin:30vh auto 0;padding:24px;text-align:center;color:#c8c6e3}
+      #boot-message strong{display:block;margin-bottom:9px;color:#fff;font-size:22px}
+      #boot-message small{display:block;margin-top:12px;color:#9295b5;line-height:1.5}
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot-message">
+        <strong>L&amp;A One</strong>
+        Загружаем приложение…
+        <small>Если загрузка не завершится, обнови страницу чуть позже.</small>
+      </div>
+    </div>
+    <script>
+      window.addEventListener('error', function (event) {
+        if (event.target && event.target.tagName === 'SCRIPT') {
+          var root = document.getElementById('root');
+          if (root && !root.dataset.appMounted) {
+            root.innerHTML = '<div id="boot-message"><strong>Не удалось загрузить L&amp;A One</strong>Браузер не смог получить файл приложения.<small>Проверь соединение и обнови страницу.</small></div>';
+          }
+        }
+      }, true);
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
