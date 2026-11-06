@@ -83,3 +83,14 @@
 .watch-queue-number{display:grid;place-items:center;width:23px;height:23px;flex-shrink:0;border-radius:8px;background:#34234e;color:#d8b4fe;font-size:10px}
 .watch-queue-url{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c8c8dd;font-size:10px}
 .watch-queue-item button{display:grid;place-items:center;width:29px;height:29px;border:1px solid #45375f;border-radius:9px;background:#1a172b;color:#d8b4fe}
+
+
+.watch-search-result{display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid #302c45;border-radius:12px;background:#111222;color:#eee;text-align:left}
+.watch-search-result>img,.watch-search-thumb{width:104px;height:62px;flex-shrink:0;object-fit:cover;border-radius:8px}
+.watch-search-result-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.watch-search-result-info>b,.watch-search-result-info b{font-size:12px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.watch-search-result-info small{font-size:10px;color:#9292ad}
+.watch-search-result-actions{display:flex;gap:7px;margin-top:5px;flex-wrap:wrap}
+.watch-search-result-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;border:1px solid #554078;border-radius:8px;background:#211936;color:#e9d5ff;font-size:10px;font-weight:700}
+.watch-search-result-actions button:first-child{background:linear-gradient(110deg,#6d3bc0,#2856a7);border-color:transparent;color:white}
+.watch-search-result-actions button:disabled{opacity:.5}
