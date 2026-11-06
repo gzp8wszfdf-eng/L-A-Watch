@@ -9,3 +9,33 @@
 .empty-icon{width:68px;height:68px;margin:0 auto 15px;border-radius:22px;display:grid;place-items:center;color:#d8b4fe;background:linear-gradient(135deg,#9333ea55,#0891b255);box-shadow:0 0 30px #8b5cf722}
 .empty-state h2{font-size:19px;margin:0 0 8px}
 .empty-state p{max-width:260px;margin:0 auto 18px;color:#a5a7c4;font-size:12px;line-height:1.6}
+
+/* L&A Watch integrated visual layer */
+.watch-hero{position:relative;overflow:hidden;margin:17px 0 14px;padding:18px;border:1px solid #49356b;border-radius:24px;background:radial-gradient(ellipse at 80% 20%,#6d28d955,transparent 45%),linear-gradient(145deg,#211637,#101323 75%);box-shadow:0 12px 40px #0004}
+.watch-hero-top{display:flex;align-items:center;gap:7px;color:#c4b5fd;font-size:9px;font-weight:800;letter-spacing:1.5px}
+.watch-live-dot,.watch-online{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 9px #34d399}
+.watch-beta{margin-left:auto;padding:5px 7px;border-radius:7px;background:#8b5cf72b;color:#d8b4fe;font-size:8px;letter-spacing:.8px}
+.watch-hero h1{margin-top:16px;font-size:30px}
+.watch-hero>p{max-width:260px;color:#b6b5d0;font-size:11px;line-height:1.6}
+.watch-hero-art{height:135px;position:relative;display:grid;place-items:center;overflow:hidden}
+.watch-orbit{position:absolute;border:1px solid #a78bfa55;border-radius:50%;transform:rotate(-18deg)}
+.orbit-one{width:210px;height:92px}.orbit-two{width:265px;height:115px;transform:rotate(18deg);border-color:#67e8f944}
+.watch-play{width:76px;height:76px;display:grid;place-items:center;border-radius:25px;color:#f5d0fe;background:linear-gradient(145deg,#9333ea88,#0891b288);border:1px solid #c084fc88;box-shadow:0 0 35px #9333ea77}
+.watch-float{position:absolute;display:grid;place-items:center;width:34px;height:34px;border:1px solid #ffffff22;border-radius:12px;background:#15152dcc;box-shadow:0 6px 18px #0005}
+.watch-float.f1{left:18%;top:15px}.watch-float.f2{right:17%;top:8px}.watch-float.f3{right:25%;bottom:4px;color:#67e8f9}
+.watch-actions{display:flex;gap:8px;flex-wrap:wrap}.watch-actions .primary,.watch-join{min-height:40px}.watch-join{display:inline-flex;align-items:center;gap:6px}
+.watch-code-box{display:flex;align-items:center;gap:10px;padding:13px;margin:12px 0 23px;border:1px solid var(--line);border-radius:16px;background:#141529}
+.watch-code-box>div{display:flex;flex-direction:column;gap:4px;flex:1}.watch-code-box b{font-size:11px}.watch-code-box small{font-size:9px;color:var(--muted)}
+.watch-code-box input{width:115px;min-width:0;padding:10px 8px;border:1px solid #51416d;border-radius:10px;background:#0c0d1b;color:#e9d5ff;text-align:center;font-size:10px;letter-spacing:1px;outline:none}
+.watch-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.watch-section-head h2{margin:4px 0 0;font-size:20px}
+.watch-tabs{display:flex;gap:7px;margin-bottom:12px}.watch-tabs button{padding:8px 13px;border:1px solid var(--line);border-radius:10px;background:#141529;color:#a5a7c4;font-size:10px}.watch-tabs button.selected{border-color:#8b5cf7;background:#8b5cf733;color:#e9d5ff}
+.watch-room-card{overflow:hidden;margin-bottom:11px;border:1px solid var(--line);border-radius:17px;background:#141529}
+.watch-room-cover{height:112px;display:flex;flex-direction:column;justify-content:end;gap:4px;padding:13px;position:relative;overflow:hidden}
+.watch-room-cover:before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#080914dd,transparent 90%)}
+.watch-room-cover span,.watch-room-cover b{position:relative}.watch-room-cover span{font-size:8px;letter-spacing:1.6px;color:#a5f3fc}.watch-room-cover b{font-size:20px}
+.cover-movie{background:radial-gradient(circle at 70% 20%,#f0abfc99,transparent 23%),linear-gradient(120deg,#21133b,#713f91,#172554)}
+.cover-neon{background:radial-gradient(circle at 25% 20%,#22d3ee99,transparent 22%),linear-gradient(120deg,#101b36,#164e63,#4c1d95)}
+.watch-room-info{display:flex;align-items:center;justify-content:space-between;padding:11px 12px}.watch-room-info>div{display:flex;flex-direction:column;gap:5px}.watch-room-info b{font-size:11px}.watch-room-info small{font-size:9px;color:var(--muted)}.watch-room-info .outline{white-space:nowrap}
+.watch-online{width:6px;height:6px;margin-right:4px}
+.watch-empty{padding:22px 14px;text-align:center;border:1px dashed #484061;border-radius:16px;display:flex;align-items:center;flex-direction:column;gap:8px}.watch-empty b{font-size:11px}.watch-empty small{font-size:10px;color:var(--muted)}
+.watch-providers{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:20px 2px 5px;padding-top:14px;border-top:1px solid var(--line)}.watch-providers>span{width:100%;font-size:8px;letter-spacing:1.3px;color:var(--muted)}.watch-providers b{font-size:9px;color:#c7c7dd}.watch-providers i{display:inline-block;width:7px;height:7px;border-radius:3px;margin-right:4px}.provider-youtube{background:#ef4444}.provider-rutube{background:#3b82f6}.watch-providers .provider-more{font-weight:500;color:var(--muted)}
