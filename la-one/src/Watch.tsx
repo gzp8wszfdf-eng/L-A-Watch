@@ -7,7 +7,24 @@ import { ArrowLeft, DoorOpen, LogOut, Plus, RefreshCw, Send, Users, Play, Lock, 
 type Room = { id: string; code: string; title: string; visibility: 'public'|'private'; created_at?: string };
 type Message = { id: string; room_id: string; username: string; content: string; created_at: string };
 type Playback = { room_id: string; video_url: string|null; video_position: number; is_playing: boolean; updated_at?: string; client_id?: string };
+type YouTubePlayer = { getCurrentTime:()=>number; seekTo:(seconds:number,allowSeekAhead:boolean)=>void; playVideo:()=>void; pauseVideo:()=>void; getPlayerState:()=>number; destroy?:()=>void };
+declare global { interface Window { YT?: { Player: new (element:HTMLIFrameElement, options:any)=>YouTubePlayer }; onYouTubeIframeAPIReady?: ()=>void } }
 const clientId = Math.random().toString(36).slice(2);
+let youtubeApiPromise: Promise<void>|null = null;
+function loadYouTubeApi() {
+  if (window.YT?.Player) return Promise.resolve();
+  if (!youtubeApiPromise) youtubeApiPromise = new Promise(resolve => {
+    const previous = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { previous?.(); resolve(); };
+    if (!document.querySelector('script[data-youtube-iframe-api]')) {
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.dataset.youtubeIframeApi = 'true';
+      document.head.appendChild(script);
+    }
+  });
+  return youtubeApiPromise;
+}
 
 function videoEmbed(url: string) {
   try {
@@ -49,6 +66,8 @@ export default function Watch() {
   const [playbackPlaying,setPlaybackPlaying]=useState(true);
   const [playbackPosition,setPlaybackPosition]=useState(0);
   const playerRef=useRef<HTMLIFrameElement|null>(null);
+  const ytPlayerRef=useRef<YouTubePlayer|null>(null);
+  const applyingRemoteRef=useRef(false);
   const [searchOpen,setSearchOpen]=useState(false);
   const [searchProvider,setSearchProvider]=useState<'youtube'|'rutube'>('youtube');
   const [searchQuery,setSearchQuery]=useState('');
@@ -62,21 +81,37 @@ export default function Watch() {
   const isGuest=!!(user?.is_anonymous || guest);
   const say=(s:string)=>setNotice(s);
   const sendYoutubeCommand=(func:string,args:any[]=[] )=>{
-    if(!videoUrl.toLowerCase().includes('youtu'))return;
-    playerRef.current?.contentWindow?.postMessage(JSON.stringify({event:'command',func,args}), '*');
+    const player=ytPlayerRef.current;
+    if(!player)return;
+    if(func==='seekTo')player.seekTo(Number(args[0])||0,true);
+    else if(func==='playVideo')player.playVideo();
+    else if(func==='pauseVideo')player.pauseVideo();
   };
   const savePlayback=async(nextPlaying:boolean,nextPosition:number)=>{
     if(!activeRoom||!videoUrl)return;
+    const playerTime=ytPlayerRef.current ? ytPlayerRef.current.getCurrentTime() : playbackPosition;
     const safePosition=Math.max(0,Math.floor(nextPosition));
     const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:videoUrl,video_position:safePosition,is_playing:nextPlaying,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
     if(error){say('Не удалось синхронизировать воспроизведение: '+error.message);return}
     setPlaybackPlaying(nextPlaying);setPlaybackPosition(safePosition);
     if(videoUrl.toLowerCase().includes('youtu')){
-      if(nextPosition!==playbackPosition)sendYoutubeCommand('seekTo',[safePosition,true]);
+      if(Math.abs(safePosition-playerTime)>0.5)sendYoutubeCommand('seekTo',[safePosition]);
       sendYoutubeCommand(nextPlaying?'playVideo':'pauseVideo');
     } else {
-      say('Состояние отправлено участникам. Пауза и перемотка в плеере RuTube пока управляются вручную.');
+      say('Пока синхронизируются ссылка и состояние комнаты. Управление плеером RuTube через кнопки ещё не поддерживается.');
     }
+  };
+  const togglePlayback=()=>{
+    const player=ytPlayerRef.current;
+    if(!player){say('Плеер YouTube ещё загружается. Подожди пару секунд.');return}
+    const current=Math.max(0,player.getCurrentTime()||0);
+    void savePlayback(!playbackPlaying,current);
+  };
+  const seekPlayback=(delta:number)=>{
+    const player=ytPlayerRef.current;
+    if(!player){say('Плеер YouTube ещё загружается. Подожди пару секунд.');return}
+    const current=Math.max(0,player.getCurrentTime()||0);
+    void savePlayback(playbackPlaying,Math.max(0,current+delta));
   };
 
   useEffect(()=>{
@@ -125,6 +160,34 @@ export default function Watch() {
   };
 
   useEffect(()=>{
+    ytPlayerRef.current=null;
+    if(!videoUrl.toLowerCase().includes('youtu') || !playerRef.current)return;
+    let cancelled=false;
+    let poll:number|undefined;
+    loadYouTubeApi().then(()=>{
+      if(cancelled || !playerRef.current || !window.YT?.Player)return;
+      const player=new window.YT.Player(playerRef.current,{
+        events:{
+          onReady:(event:any)=>{
+            if(cancelled)return;
+            ytPlayerRef.current=event.target;
+            if(playbackPosition>0)event.target.seekTo(playbackPosition,true);
+            if(!playbackPlaying)event.target.pauseVideo();
+            poll=window.setInterval(()=>{
+              if(!cancelled && ytPlayerRef.current){
+                const time=ytPlayerRef.current.getCurrentTime();
+                if(Number.isFinite(time))setPlaybackPosition(Math.floor(time));
+              }
+            },1000);
+          }
+        }
+      });
+      ytPlayerRef.current=player;
+    }).catch(()=>say('Не удалось загрузить управление YouTube.'));
+    return ()=>{cancelled=true;if(poll)window.clearInterval(poll);ytPlayerRef.current=null};
+  },[videoUrl]);
+
+  useEffect(()=>{
     if(!activeRoom)return;
     const channel=supabase.channel('one-watch-'+activeRoom.id)
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room_id=eq.'+activeRoom.id},payload=>{
@@ -139,8 +202,12 @@ export default function Watch() {
           setPlaybackPlaying(!!state.is_playing);setPlaybackPosition(Number(state.video_position)||0);
           if(!changedVideo && state.video_url.toLowerCase().includes('youtu')){
             window.setTimeout(()=>{
-              if(Number(state.video_position)>0)playerRef.current?.contentWindow?.postMessage(JSON.stringify({event:'command',func:'seekTo',args:[Number(state.video_position),true]}),'*');
-              playerRef.current?.contentWindow?.postMessage(JSON.stringify({event:'command',func:state.is_playing?'playVideo':'pauseVideo',args:[]}),'*');
+              if(ytPlayerRef.current){
+                applyingRemoteRef.current=true;
+                ytPlayerRef.current.seekTo(Number(state.video_position)||0,true);
+                if(state.is_playing)ytPlayerRef.current.playVideo();else ytPlayerRef.current.pauseVideo();
+                window.setTimeout(()=>{applyingRemoteRef.current=false},800);
+              }
             },350);
           }
         }
@@ -253,7 +320,7 @@ export default function Watch() {
       <div className="watch-room-top"><button className="watch-back" onClick={()=>{setActiveRoom(null);loadRooms()}}><ArrowLeft size={16}/> Комнаты</button><span className="watch-room-code">{activeRoom.visibility==='private'?'КОД: '+activeRoom.code:'ОТКРЫТАЯ'}</span></div>
       <h2>{activeRoom.title}</h2>
       <div className="watch-video-frame">{embed?<iframe ref={playerRef} src={embed} title="L&A Watch video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>:<div className="watch-video-empty"><Play size={32}/><b>Добавь видео</b><small>YouTube, RuTube или ссылку на видео</small></div>}</div>
-      {videoUrl&&<div className="watch-playback-controls"><button type="button" onClick={()=>savePlayback(playbackPlaying,Math.max(0,playbackPosition-10))} disabled={!videoUrl.toLowerCase().includes('youtu')}>−10 сек.</button><button type="button" onClick={()=>savePlayback(!playbackPlaying,playbackPosition)} disabled={!videoUrl.toLowerCase().includes('youtu')}>{playbackPlaying?'Пауза':'Продолжить'}</button><button type="button" onClick={()=>savePlayback(playbackPlaying,playbackPosition+10)} disabled={!videoUrl.toLowerCase().includes('youtu')}>+10 сек.</button></div>}
+      {videoUrl&&<div className="watch-playback-controls"><button type="button" onClick={()=>seekPlayback(-10)} disabled={!videoUrl.toLowerCase().includes('youtu')}>−10 сек.</button><button type="button" onClick={togglePlayback} disabled={!videoUrl.toLowerCase().includes('youtu')}>{playbackPlaying?'Пауза':'Продолжить'}</button><button type="button" onClick={()=>seekPlayback(10)} disabled={!videoUrl.toLowerCase().includes('youtu')}>+10 сек.</button></div>}
       <div className="watch-search-actions"><button type="button" onClick={()=>{setSearchProvider("youtube");setSearchOpen(true);setSearchError("");setSearchResults([])}}><Youtube size={17}/> Найти на YouTube</button><button type="button" onClick={()=>{setSearchProvider("rutube");setSearchOpen(true);setSearchError("");setSearchResults([])}}><Film size={17}/> Найти на RuTube</button></div><form className="watch-video-form" onSubmit={setVideo}><input value={videoInput} onChange={e=>setVideoInput(e.target.value)} placeholder="Или вставь ссылку на видео"/><button className="primary">▶</button></form>
       <div className="watch-chat-head">Чат комнаты <span>{messages.length}</span></div>
       <div className="watch-chat-list">{messages.map(m=><div className="watch-chat-message" key={m.id}><b>{m.username}</b><span>{m.content}</span></div>)}</div>
