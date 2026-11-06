@@ -197,7 +197,7 @@ export default function Watch() {
     if(!activeRoom||!user||!videoInput.trim())return;
     if(isGuest){say('Гостям доступен просмотр, но добавлять видео в очередь могут только зарегистрированные пользователи.');return}
     const url=videoInput.trim();
-    if(!/^https?:\\/\\//i.test(url)){say('Вставь полную ссылку на видео.');return}
+    if(!/^https?:\/\//i.test(url)){say('Вставь полную ссылку на видео.');return}
     setQueueBusy(true);
     const {data,error}=await supabase.from('room_video_queue').insert({room_id:activeRoom.id,video_url:url,added_by:user.id}).select('id,room_id,video_url,added_by,created_at').single();
     setQueueBusy(false);
