@@ -169,6 +169,27 @@ export default function Watch() {
     setVideoUrl(url);say('Видео отправлено всем участникам комнаты.');
   };
 
+  const searchVideos=async(e?:FormEvent)=>{
+    e?.preventDefault();
+    const q=searchQuery.trim();
+    if(q.length<2){setSearchError('Введи минимум 2 символа.');return}
+    setSearchBusy(true);setSearchError('');setSearchResults([]);
+    try{
+      const endpoint=searchProvider==='youtube'?'/api/youtube-search':'/api/rutube-search';
+      const response=await fetch('https://l-a-watch.pages.dev'+endpoint+'?q='+encodeURIComponent(q));
+      const data=await response.json();
+      if(!response.ok)throw new Error(data?.error||'Поиск временно недоступен.');
+      const items=searchProvider==='youtube'?(data.items||[]).filter((x:any)=>x.id?.videoId).map((x:any)=>({id:x.id.videoId,title:x.snippet?.title||'Видео YouTube',author:x.snippet?.channelTitle||'YouTube',thumbnail:x.snippet?.thumbnails?.medium?.url||x.snippet?.thumbnails?.default?.url||'',url:'https://www.youtube.com/watch?v='+x.id.videoId})):(data.items||[]);
+      setSearchResults(items);if(!items.length)setSearchError('Ничего не найдено. Попробуй другой запрос.');
+    }catch(err){setSearchError(err instanceof Error?err.message:'Не удалось выполнить поиск.')}
+    finally{setSearchBusy(false)}
+  };
+  const chooseSearchVideo=async(url:string)=>{
+    if(!activeRoom)return;
+    const {error}=await supabase.from('playback_state').upsert({room_id:activeRoom.id,video_url:url,video_position:0,is_playing:true,updated_at:new Date().toISOString(),client_id:clientId},{onConflict:'room_id'});
+    if(error){say('Не удалось отправить видео: '+error.message);return}
+    setVideoUrl(url);setVideoInput(url);setSearchOpen(false);setSearchQuery('');setSearchResults([]);say('Видео отправлено всем участникам комнаты.');
+  };
   const signOut=async()=>{await supabase.auth.signOut();setActiveRoom(null);setRooms([]);say('Ты вышел из аккаунта.')};
   const embed=useMemo(()=>videoEmbed(videoUrl),[videoUrl]);
 
