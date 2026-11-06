@@ -73,3 +73,13 @@
 .watch-playback-controls{display:flex;gap:7px;margin:-4px 0 13px}
 .watch-playback-controls button{flex:1;min-width:0;padding:10px 5px;border:1px solid #49356b;border-radius:11px;background:#17152a;color:#e9d5ff;font-size:11px;font-weight:700}
 .watch-playback-controls button:disabled{opacity:.38;cursor:not-allowed}
+
+
+.watch-queue-add{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin:-8px 0 15px;padding:10px;border:1px solid #554078;border-radius:11px;background:#211936;color:#e9d5ff;font-size:11px;font-weight:700}
+.watch-queue-add:disabled{opacity:.45}
+.watch-queue-panel{margin:4px 0 18px;padding:12px;border:1px solid #302c45;border-radius:14px;background:#0e0f1d}
+.watch-queue-panel .watch-chat-head{margin:0 0 9px}
+.watch-queue-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #29263b}
+.watch-queue-number{display:grid;place-items:center;width:23px;height:23px;flex-shrink:0;border-radius:8px;background:#34234e;color:#d8b4fe;font-size:10px}
+.watch-queue-url{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c8c8dd;font-size:10px}
+.watch-queue-item button{display:grid;place-items:center;width:29px;height:29px;border:1px solid #45375f;border-radius:9px;background:#1a172b;color:#d8b4fe}
