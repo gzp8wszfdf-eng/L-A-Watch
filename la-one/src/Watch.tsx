@@ -64,8 +64,8 @@ export default function Watch() {
     if(!user){setProfileName('');setGuest(false);return}
     setGuest(!!user.is_anonymous);
     if(user.is_anonymous){setProfileName('Гость');return}
-    supabase.from('profiles').select('username,display_name').eq('id',user.id).maybeSingle()
-      .then(({data})=>setProfileName(data?.display_name||data?.username||user.email?.split('@')[0]||'Пользователь'));
+    supabase.from('profiles').select('username').eq('id',user.id).maybeSingle()
+      .then(({data})=>setProfileName(data?.username||user.email?.split('@')[0]||'Пользователь'));
   },[user?.id]);
 
   const loadRooms=useCallback(async()=>{
