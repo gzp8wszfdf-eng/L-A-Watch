@@ -65,6 +65,7 @@ export default function Watch() {
   const [videoInput,setVideoInput]=useState('');
   const [playbackPlaying,setPlaybackPlaying]=useState(true);
   const [playbackPosition,setPlaybackPosition]=useState(0);
+  const [playerReady,setPlayerReady]=useState(false);
   const playerRef=useRef<HTMLIFrameElement|null>(null);
   const ytPlayerRef=useRef<YouTubePlayer|null>(null);
   const applyingRemoteRef=useRef(false);
@@ -161,6 +162,7 @@ export default function Watch() {
 
   useEffect(()=>{
     ytPlayerRef.current=null;
+    setPlayerReady(false);
     if(!videoUrl.toLowerCase().includes('youtu') || !playerRef.current)return;
     let cancelled=false;
     let poll:number|undefined;
@@ -171,6 +173,7 @@ export default function Watch() {
           onReady:(event:any)=>{
             if(cancelled)return;
             ytPlayerRef.current=event.target;
+            setPlayerReady(true);
             if(playbackPosition>0)event.target.seekTo(playbackPosition,true);
             if(!playbackPlaying)event.target.pauseVideo();
             poll=window.setInterval(()=>{
@@ -184,7 +187,7 @@ export default function Watch() {
       });
       ytPlayerRef.current=player;
     }).catch(()=>say('Не удалось загрузить управление YouTube.'));
-    return ()=>{cancelled=true;if(poll)window.clearInterval(poll);ytPlayerRef.current=null};
+    return ()=>{cancelled=true;if(poll)window.clearInterval(poll);ytPlayerRef.current=null;setPlayerReady(false)};
   },[videoUrl]);
 
   useEffect(()=>{
@@ -320,7 +323,7 @@ export default function Watch() {
       <div className="watch-room-top"><button className="watch-back" onClick={()=>{setActiveRoom(null);loadRooms()}}><ArrowLeft size={16}/> Комнаты</button><span className="watch-room-code">{activeRoom.visibility==='private'?'КОД: '+activeRoom.code:'ОТКРЫТАЯ'}</span></div>
       <h2>{activeRoom.title}</h2>
       <div className="watch-video-frame">{embed?<iframe ref={playerRef} src={embed} title="L&A Watch video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>:<div className="watch-video-empty"><Play size={32}/><b>Добавь видео</b><small>YouTube, RuTube или ссылку на видео</small></div>}</div>
-      {videoUrl&&<div className="watch-playback-controls"><button type="button" onClick={()=>seekPlayback(-10)} disabled={!videoUrl.toLowerCase().includes('youtu')}>−10 сек.</button><button type="button" onClick={togglePlayback} disabled={!videoUrl.toLowerCase().includes('youtu')}>{playbackPlaying?'Пауза':'Продолжить'}</button><button type="button" onClick={()=>seekPlayback(10)} disabled={!videoUrl.toLowerCase().includes('youtu')}>+10 сек.</button></div>}
+      {videoUrl&&<div className="watch-playback-controls"><button type="button" onClick={()=>seekPlayback(-10)} disabled={!videoUrl.toLowerCase().includes('youtu')||!playerReady}>−10 сек.</button><button type="button" onClick={togglePlayback} disabled={!videoUrl.toLowerCase().includes('youtu')||!playerReady}>{playbackPlaying?'Пауза':'Продолжить'}</button><button type="button" onClick={()=>seekPlayback(10)} disabled={!videoUrl.toLowerCase().includes('youtu')||!playerReady}>+10 сек.</button></div>}
       <div className="watch-search-actions"><button type="button" onClick={()=>{setSearchProvider("youtube");setSearchOpen(true);setSearchError("");setSearchResults([])}}><Youtube size={17}/> Найти на YouTube</button><button type="button" onClick={()=>{setSearchProvider("rutube");setSearchOpen(true);setSearchError("");setSearchResults([])}}><Film size={17}/> Найти на RuTube</button></div><form className="watch-video-form" onSubmit={setVideo}><input value={videoInput} onChange={e=>setVideoInput(e.target.value)} placeholder="Или вставь ссылку на видео"/><button className="primary">▶</button></form>
       <div className="watch-chat-head">Чат комнаты <span>{messages.length}</span></div>
       <div className="watch-chat-list">{messages.map(m=><div className="watch-chat-message" key={m.id}><b>{m.username}</b><span>{m.content}</span></div>)}</div>
