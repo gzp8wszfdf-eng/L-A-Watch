@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import { ArrowLeft, DoorOpen, LogOut, Plus, RefreshCw, Send, Users, Play, Lock, Globe, X } from 'lucide-react';
+import { ArrowLeft, DoorOpen, LogOut, Plus, RefreshCw, Send, Users, Play, Lock, Globe, X, Search, Youtube, Film } from 'lucide-react';
 
 type Room = { id: string; code: string; title: string; visibility: 'public'|'private'; created_at?: string };
 type Message = { id: string; room_id: string; username: string; content: string; created_at: string };
@@ -46,6 +46,12 @@ export default function Watch() {
   const [draft,setDraft]=useState('');
   const [videoUrl,setVideoUrl]=useState('');
   const [videoInput,setVideoInput]=useState('');
+  const [searchOpen,setSearchOpen]=useState(false);
+  const [searchProvider,setSearchProvider]=useState<'youtube'|'rutube'>('youtube');
+  const [searchQuery,setSearchQuery]=useState('');
+  const [searchResults,setSearchResults]=useState<any[]>([]);
+  const [searchBusy,setSearchBusy]=useState(false);
+  const [searchError,setSearchError]=useState('');
   const [profileName,setProfileName]=useState('');
   const [guest,setGuest]=useState(false);
 
@@ -232,7 +238,7 @@ export default function Watch() {
         <div className="watch-live-room-list">{rooms.length?rooms.map(r=><div className="watch-live-room" key={r.id}><div><b>{r.title}</b><small>{r.visibility==='public'?'Открытая комната':'Закрытая комната'}</small></div><button className="outline" onClick={()=>enterRoom(r)} disabled={busy}>Войти <DoorOpen size={14}/></button></div>):<div className="watch-empty"><Users size={24}/><b>Комнат пока нет</b><small>Создай свою или обнови список позже.</small></div>}</div>
       </div>
     </>}
-<    {searchOpen&&<div className="watch-search-overlay"><div className="watch-search-modal"><div className="watch-search-title"><div><b>Поиск видео</b><small>{searchProvider==="youtube"?"YouTube":"RuTube"}</small></div><button type="button" onClick={()=>setSearchOpen(false)} aria-label="Закрыть"><X/></button></div><div className="watch-search-tabs"><button className={searchProvider==="youtube"?"selected":""} onClick={()=>{setSearchProvider("youtube");setSearchResults([]);setSearchError("")}}><Youtube size={16}/> YouTube</button><button className={searchProvider==="rutube"?"selected":""} onClick={()=>{setSearchProvider("rutube");setSearchResults([]);setSearchError("")}}><Film size={16}/> RuTube</button></div><form className="watch-search-form" onSubmit={searchVideos}><input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Название фильма или видео…"/><button className="primary" disabled={searchBusy}><Search size={17}/></button></form>{searchBusy&&<p className="watch-search-state">Ищем видео…</p>}{searchError&&<p className="watch-search-state">{searchError}</p>}<div className="watch-search-results">{searchResults.map((item:any)=><button className="watch-search-result" key={item.id} onClick={()=>chooseSearchVideo(item.url)}>{item.thumbnail?<img src={item.thumbnail} alt=""/>:<div className="watch-search-thumb"><Play/></div>}<span><b>{item.title}</b><small>{item.author}</small></span><Play size={17}/></button>)}</div></div></div>}
+    {searchOpen&&<div className="watch-search-overlay"><div className="watch-search-modal"><div className="watch-search-title"><div><b>Поиск видео</b><small>{searchProvider==="youtube"?"YouTube":"RuTube"}</small></div><button type="button" onClick={()=>setSearchOpen(false)} aria-label="Закрыть"><X/></button></div><div className="watch-search-tabs"><button className={searchProvider==="youtube"?"selected":""} onClick={()=>{setSearchProvider("youtube");setSearchResults([]);setSearchError("")}}><Youtube size={16}/> YouTube</button><button className={searchProvider==="rutube"?"selected":""} onClick={()=>{setSearchProvider("rutube");setSearchResults([]);setSearchError("")}}><Film size={16}/> RuTube</button></div><form className="watch-search-form" onSubmit={searchVideos}><input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Название фильма или видео…"/><button className="primary" disabled={searchBusy}><Search size={17}/></button></form>{searchBusy&&<p className="watch-search-state">Ищем видео…</p>}{searchError&&<p className="watch-search-state">{searchError}</p>}<div className="watch-search-results">{searchResults.map((item:any)=><button className="watch-search-result" key={item.id} onClick={()=>chooseSearchVideo(item.url)}>{item.thumbnail?<img src={item.thumbnail} alt=""/>:<div className="watch-search-thumb"><Play/></div>}<span><b>{item.title}</b><small>{item.author}</small></span><Play size={17}/></button>)}</div></div></div>}
     {notice&&<div className="watch-notice"><span>{notice}</span><button onClick={()=>setNotice('')}><X size={14}/></button></div>}
   </section>;
 }
