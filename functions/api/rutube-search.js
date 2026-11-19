@@ -1,11 +1,30 @@
+const ALLOWED_ORIGINS = new Set(["https://lawatch-24.ru","https://www.lawatch-24.ru","https://lawatch-mobile-preview.onrender.com","https://la-one-watch-integration-preview.onrender.com","https://l-a-watch.pages.dev"]);
+
+function corsHeaders(request) {
+  const origin = request.headers.get("Origin");
+  const headers = {
+    "vary": "Origin",
+    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-headers": "Content-Type"
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers["access-control-allow-origin"] = origin;
+  }
+  return headers;
+}
+
+function optionsResponse(request) {
+  return new Response(null, { status: 204, headers: corsHeaders(request) });
+}
+
 export async function onRequest(context) {
   const { request } = context;
+  if (request.method === "OPTIONS") return optionsResponse(request);
   if (request.method !== "GET") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
       headers: { "content-type": "application/json",
-        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
-        "vary": "Origin" }
+        ...corsHeaders(request) }
     });
   }
 
@@ -15,8 +34,7 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ error: "Введите минимум 2 символа для поиска." }), {
       status: 400,
       headers: { "content-type": "application/json",
-        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
-        "vary": "Origin" }
+        ...corsHeaders(request) }
     });
   }
 
@@ -42,8 +60,7 @@ export async function onRequest(context) {
       }), {
         status: 502,
         headers: { "content-type": "application/json",
-        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
-        "vary": "Origin", "cache-control": "no-store" }
+        ...corsHeaders(request), "cache-control": "no-store" }
       });
     }
 
@@ -91,8 +108,7 @@ export async function onRequest(context) {
       status: 200,
       headers: {
         "content-type": "application/json",
-        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
-        "vary": "Origin",
+        ...corsHeaders(request),
         "cache-control": "public, max-age=45"
       }
     });
@@ -100,8 +116,7 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ error: "Не удалось связаться с поиском RUTUBE." }), {
       status: 502,
       headers: { "content-type": "application/json",
-        "access-control-allow-origin": "https://la-one-watch-integration-preview.onrender.com",
-        "vary": "Origin", "cache-control": "no-store" }
+        ...corsHeaders(request), "cache-control": "no-store" }
     });
   }
 }
