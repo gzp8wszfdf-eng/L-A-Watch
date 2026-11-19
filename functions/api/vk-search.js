@@ -1,3 +1,22 @@
+const ALLOWED_ORIGINS = new Set(["https://lawatch-24.ru","https://www.lawatch-24.ru","https://lawatch-mobile-preview.onrender.com","https://la-one-watch-integration-preview.onrender.com","https://l-a-watch.pages.dev"]);
+
+function corsHeaders(request) {
+  const origin = request.headers.get("Origin");
+  const headers = {
+    "vary": "Origin",
+    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-headers": "Content-Type"
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers["access-control-allow-origin"] = origin;
+  }
+  return headers;
+}
+
+function optionsResponse(request) {
+  return new Response(null, { status: 204, headers: corsHeaders(request) });
+}
+
 function decodeHtml(value) {
   return String(value || "")
     .replace(/&amp;/g, "&")
@@ -117,9 +136,12 @@ async function searchBing(query) {
 }
 
 export async function onRequest({ request }) {
+  if (request.method === "OPTIONS") return optionsResponse(request);
+
   const headers = {
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store"
+    "cache-control": "no-store",
+    ...corsHeaders(request)
   };
 
   if (request.method !== "GET") {
